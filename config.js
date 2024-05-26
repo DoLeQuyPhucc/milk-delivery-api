@@ -9,7 +9,7 @@ const app = express();
 dotenv.config();
 
 // Connect to DB
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 const MONGOURL = process.env.MONGO_URL;
 
 mongoose.connect(MONGOURL).then(() => {
