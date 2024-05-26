@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRoutes from './src/routes/userRoutes.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
 
 const app = express();
 dotenv.config();
@@ -18,4 +20,33 @@ mongoose.connect(MONGOURL).then(() => {
 })
 .catch((err) => console.log(err));
 
-app.use(userRoutes);
+
+
+
+//Swagger
+
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Express API with Swagger',
+      version: '1.0.0',
+      description: 'This is a simple CRUD API application made with Express and documented with Swagger',
+    },
+    servers: [
+      {
+        url: 'http://localhost:8000',
+      },
+    ],
+  },
+  // Update here to include the path to your controllers
+  apis: ['./src/routes/*.js', './src/controllers/*.js'],
+};
+
+app.use('/allusers', userRoutes);
+const specs = swaggerJsdoc(swaggerOptions);
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs, { explorer: true })
+);
