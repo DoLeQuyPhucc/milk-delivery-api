@@ -9,8 +9,14 @@ import cors from "cors";
 dotenv.config();
 const app = express();
 
+const corsOptions = {
+  origin: "http://localhost:5173", // Allow only your frontend domain
+  methods: "GET,POST,PUT,DELETE",
+  allowedHeaders: "Content-Type,Authorization",
+};
+
 // Use CORS middleware
-app.use(cors());
+app.use(cors(corsOptions));
 
 // Connect to DB
 const PORT = process.env.PORT || 8000;
@@ -60,3 +66,10 @@ app.use(
 );
 
 app.use("/allusers", userRoutes);
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
