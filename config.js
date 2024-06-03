@@ -12,6 +12,11 @@ dotenv.config();
 const PORT = process.env.PORT || 8000;
 const MONGOURL = process.env.MONGO_URL;
 
+const cors = require("cors");
+
+// Use CORS middleware
+app.use(cors());
+
 mongoose
   .connect(MONGOURL)
   .then(() => {
