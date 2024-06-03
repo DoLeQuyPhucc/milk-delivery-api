@@ -50,7 +50,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`,
+        url: 'https://testdb-fajc.onrender.com',
       },
     ],
   },
