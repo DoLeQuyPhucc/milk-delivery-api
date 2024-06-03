@@ -4,30 +4,34 @@ import dotenv from "dotenv";
 import userRoutes from "./src/routes/userRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import cors from "cors";
 
-const app = express();
 dotenv.config();
+const app = express();
+
+// Use CORS middleware
+app.use(cors());
 
 // Connect to DB
 const PORT = process.env.PORT || 8000;
 const MONGOURL = process.env.MONGO_URL;
 
-const cors = require("cors");
-
-// Use CORS middleware
-app.use(cors());
-
 mongoose
-  .connect(MONGOURL)
+  .connect(MONGOURL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("Database connected successfully.");
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
   })
-  .catch((err) => console.log(err));
+  .catch((err) => {
+    console.error("Database connection error:", err);
+  });
 
-//Swagger
+// Swagger
 
 const swaggerOptions = {
   swaggerDefinition: {
@@ -40,7 +44,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://localhost:8000",
+        url: `http://localhost:${PORT}`,
       },
     ],
   },
@@ -48,10 +52,11 @@ const swaggerOptions = {
   apis: ["./src/routes/*.js", "./src/controllers/*.js"],
 };
 
-app.use("/allusers", userRoutes);
 const specs = swaggerJsdoc(swaggerOptions);
 app.use(
   "/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(specs, { explorer: true })
 );
+
+app.use("/allusers", userRoutes);
