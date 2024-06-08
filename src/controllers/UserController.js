@@ -1,4 +1,4 @@
-import UserModel from "../models/User.js";
+import UserModel from "../models/userModel.js";
 
 /**
  * @swagger
@@ -35,6 +35,7 @@ import UserModel from "../models/User.js";
  */
 export const getAllUsers = async (req, res) => {
   try {
+    const test = "aaa";
     const users = await UserModel.find();
     res.status(200).json(users);
   } catch (err) {
