@@ -68,7 +68,7 @@ app.use(
 );
 
 // app.use("/allusers", userRoutes);
-app.use("/", appRoutes);
+app.use("/api", appRoutes);
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
