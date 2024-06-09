@@ -1,8 +1,9 @@
+// userController.js
 import UserModel from "../models/userModel.js";
 
 /**
  * @swagger
- * /allusers/getAllUsers:
+ * /api/allusers/getAllUsers:
  *   get:
  *     summary: Retrieve a list of users
  *     description: Retrieve a list of users. Can be used to populate a list of fake users when prototyping or testing an API.
@@ -35,7 +36,6 @@ import UserModel from "../models/userModel.js";
  */
 export const getAllUsers = async (req, res) => {
   try {
-    const test = "aaa";
     const users = await UserModel.find();
     res.status(200).json(users);
   } catch (err) {
