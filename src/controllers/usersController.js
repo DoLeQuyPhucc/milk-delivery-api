@@ -1,3 +1,10 @@
+/**
+ * @swagger
+ * tags:
+ *   name: User
+ *   description: API for users
+ */
+
 import UserModel from "../models/userModel.js";
 
 /**
@@ -6,6 +13,7 @@ import UserModel from "../models/userModel.js";
  *   get:
  *     summary: Retrieve a list of users
  *     description: Retrieve a list of users. Can be used to populate a list of fake users when prototyping or testing an API.
+ *     tags: [User]
  *     responses:
  *       200:
  *         description: A list of users.
