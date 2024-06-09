@@ -9,7 +9,7 @@ import ProductModel from "../models/productModel.js";
 
 /**
  * @swagger
- * /api/allproducts/getAllProducts:
+ * /api/products/getAllProducts:
  *   get:
  *     summary: Retrieve a list of products
  *     description: Retrieve a list of products. Can be used to populate a list of fake products when prototyping or testing an API.
