@@ -4,7 +4,6 @@ import userRoutes from "./userRoutes.js";
 import authRoutes from "./authRoutes.js";
 
 import productRoutes from "./productRoutes.js";
-
 const router = express.Router();
 
 // Use the user routes

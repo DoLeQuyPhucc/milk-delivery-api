@@ -1,10 +1,10 @@
-
 /**
  * @swagger
  * tags:
  *   name: User
  *   description: API for users
  */
+
 import UserModel from "../models/userModel.js";
 
 /**
