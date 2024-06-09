@@ -65,6 +65,20 @@ const swaggerOptions = {
         url: "http://localhost:8000",
       },
     ],
+    components: {
+      securitySchemes: {
+        Bearer: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        Bearer: [],
+      },
+    ],
   },
   // Update here to include the path to your controllers
   apis: ["./src/routes/*.js", "./src/controllers/*.js"],
