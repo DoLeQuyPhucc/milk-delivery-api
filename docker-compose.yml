@@ -5,17 +5,17 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      - MONGO_URL=mongodb://mongo:27017/MilkDelivery
-    depends_on:
-      - mongo
+  #   environment:
+  #     - MONGO_URL=mongodb://mongo:27017/MilkDelivery
+  #   depends_on:
+  #     - mongo
 
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27018:27017"
-    volumes:
-      - mongo-data:/data/db
+  # mongo:
+  #   image: mongo:latest
+  #   ports:
+  #     - "27018:27017"
+  #   volumes:
+  #     - mongo-data:/data/db
 
-volumes:
-  mongo-data:
+# volumes:
+#   mongo-data:
