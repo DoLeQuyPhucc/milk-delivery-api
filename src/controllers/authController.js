@@ -93,14 +93,10 @@ const signIn = async (req, res) => {
   try {
     // Find user by email
     const user = await User.findOne({ email });
-    console.log("User found:", user);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    console.log("===> User password (req.body)", password);
-    console.log("===> User password (db)", user.password);
 
     // Check if password is correct (plain text comparison)
     if (password !== user.password) {
