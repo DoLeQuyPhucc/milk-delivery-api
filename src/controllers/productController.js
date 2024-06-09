@@ -16,6 +16,7 @@ import ProductModel from "../models/productModel.js";
  *     tags: [Product]
  *     responses:
  *       '200':
+
  *         description: A list of products.
  *         content:
  *           application/json:
