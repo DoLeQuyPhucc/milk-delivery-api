@@ -52,8 +52,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        // url: "https://milk-delivery-api.onrender.com",
-        url: "http://localhost:8000",
+        url: "https://milk-delivery-api.onrender.com",
       },
     ],
   },
