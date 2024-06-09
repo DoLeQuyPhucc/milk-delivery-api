@@ -1,13 +1,21 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Product
+ *   description: API for products
+ */
+
 import ProductModel from "../models/productModel.js";
 
 /**
  * @swagger
- * /api/products/getAllProducts:
+ * /api/allproducts/getAllProducts:
  *   get:
  *     summary: Retrieve a list of products
- *     description: Retrieve a list of products. Can be used to populate a list of products when prototyping or testing an API.
+ *     description: Retrieve a list of products. Can be used to populate a list of fake products when prototyping or testing an API.
+ *     tags: [Product]
  *     responses:
- *       200:
+ *       '200':
  *         description: A list of products.
  *         content:
  *           application/json:
@@ -20,24 +28,18 @@ import ProductModel from "../models/productModel.js";
  *     Product:
  *       type: object
  *       required:
- *         - productID
- *         - brandID
  *         - name
+ *         - productImage
+ *         - description
  *         - price
  *         - stockQuantity
  *       properties:
- *         productID:
- *           type: number
- *           description: The product's ID.
- *         brandID:
- *           type: number
- *           description: The brand's ID.
  *         name:
  *           type: string
  *           description: The product's name.
  *         productImage:
  *           type: string
- *           description: The product's image URL.
+ *           description: The product's image.
  *         description:
  *           type: string
  *           description: The product's description.
@@ -48,13 +50,11 @@ import ProductModel from "../models/productModel.js";
  *           type: number
  *           description: The product's stock quantity.
  *       example:
- *         productID: 1
- *         brandID: 1
- *         name: Vinamilk Fresh Milk
- *         productImage: "http://example.com/image.jpg"
- *         description: "Fresh milk from Vinamilk."
- *         price: 30000
- *         stockQuantity: 100
+ *         name: Leanne Graham
+ *         productImage: https://via.placeholder.com/150/92c952
+ *         description: The product's description.
+ *         price: 100
+ *         stockQuantity: 10
  */
 export const getAllProducts = async (req, res) => {
   try {
