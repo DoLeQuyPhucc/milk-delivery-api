@@ -54,6 +54,9 @@ const swaggerOptions = {
       {
         url: "https://milk-delivery-api.onrender.com",
       },
+      {
+        url: "http://localhost:8000",
+      },
     ],
   },
   // Update here to include the path to your controllers
