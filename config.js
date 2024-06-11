@@ -6,7 +6,6 @@ import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cors from "cors";
 
-// import userRoutes from "./routes/userRoutes.js";
 import appRoutes from "./src/routes/appRoutes.js";
 
 dotenv.config();
@@ -91,7 +90,6 @@ app.use(
   swaggerUi.setup(specs, { explorer: true })
 );
 
-// app.use("/allusers", userRoutes);
 app.use("/api", appRoutes);
 
 app.use((req, res, next) => {
