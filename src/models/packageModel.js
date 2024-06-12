@@ -1,8 +1,28 @@
 import mongoose from "mongoose";
 
+const productSchema = new mongoose.Schema({
+  brandID: mongoose.Schema.Types.ObjectId,
+  name: String,
+  productImage: String,
+  description: String,
+  price: Number,
+  stockQuantity: Number,
+});
+
+const productInPackageSchema = new mongoose.Schema({
+  product: {
+    type: productSchema,
+    required: true,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+  },
+});
+
 const packageSchema = new mongoose.Schema({
   products: {
-    type: Array,
+    type: [productInPackageSchema],
     required: true,
   },
   totalAmount: {
@@ -15,6 +35,6 @@ const packageSchema = new mongoose.Schema({
   },
 });
 
-const PackageModel = mongoose.model("packages", packageSchema);
+const PackageModel = mongoose.model("Package", packageSchema);
 
 export default PackageModel;

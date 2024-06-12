@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
-  productID: Number,
-  brandID: Number,
+  brandID: mongoose.Schema.Types.ObjectId,
   name: String,
   productImage: String,
   description: String,
@@ -10,6 +9,6 @@ const productSchema = new mongoose.Schema({
   stockQuantity: Number,
 });
 
-const ProductModel = mongoose.model("products", productSchema);
+const ProductModel = mongoose.model("Product", productSchema);
 
 export default ProductModel;
