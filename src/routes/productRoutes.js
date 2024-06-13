@@ -1,10 +1,11 @@
 import express from "express";
 import {
   getAllProducts,
+  getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
-  searchProductByName,
+  getProductByName,
   getProductsPaged,
 } from "../controllers/productController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -12,21 +13,24 @@ import { authenticateToken } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // GET /api/products/getAllProducts
-router.get("/getAllProducts", getAllProducts);
+router.get("/getAllProducts", authenticateToken, getAllProducts);
 
-// POST /api/products/createProduct
-router.post("/createProduct", authenticateToken, createProduct);
+// GET /api/products/:id
+router.get("/:id", authenticateToken, getProductById);
 
-// PUT /api/products/updateProduct/:id
-router.put("/updateProduct/:id", authenticateToken, updateProduct);
+// POST /api/products/
+router.post("/", authenticateToken, createProduct);
 
-// DELETE /api/products/deleteProduct/:id
-router.delete("/deleteProduct/:id", authenticateToken, deleteProduct);
+// PUT /api/products/:id
+router.put("/:id", authenticateToken, updateProduct);
 
-// GET /api/products/searchProductByName
-router.get("/searchProductByName", searchProductByName);
+// DELETE /api/products/:id
+router.delete("/:id", authenticateToken, deleteProduct);
+
+// GET /api/products/getProductByName
+router.get("/getProductByName", authenticateToken, getProductByName);
 
 // GET /api/products/paged
-router.get("/paged", getProductsPaged);
+router.get("/paged", authenticateToken, getProductsPaged);
 
 export default router;
