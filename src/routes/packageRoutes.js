@@ -7,11 +7,10 @@ import { authenticateToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// /api/packages/getAllPackages
-// router.get("/getAllPackages", authenticateToken, getAllPackages);
+// GET /api/packages/getAllPackages
 router.get("/getAllPackages", authenticateToken, getAllPackages);
 
-// /api/packages/createPackage
+// POST /api/packages/createPackage
 router.post("/createPackage", authenticateToken, createPackage);
 
 export default router;

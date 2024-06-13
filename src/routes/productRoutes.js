@@ -11,22 +11,22 @@ import { authenticateToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Get all products
+// GET /api/products/getAllProducts
 router.get("/getAllProducts", getAllProducts);
 
-// Create a new product
+// POST /api/products/createProduct
 router.post("/createProduct", authenticateToken, createProduct);
 
-// Update a product
+// PUT /api/products/updateProduct/:id
 router.put("/updateProduct/:id", authenticateToken, updateProduct);
 
-// Delete a product
+// DELETE /api/products/deleteProduct/:id
 router.delete("/deleteProduct/:id", authenticateToken, deleteProduct);
 
-// Search products by name
+// GET /api/products/searchProductByName
 router.get("/searchProductByName", searchProductByName);
 
-// Get products by page
+// GET /api/products/paged
 router.get("/paged", getProductsPaged);
 
 export default router;
