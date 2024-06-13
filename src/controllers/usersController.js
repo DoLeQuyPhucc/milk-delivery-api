@@ -237,9 +237,9 @@
  *                 message:
  *                   type: string
  *
- * /api/users/searchUserByFirstName:
+ * /api/users/getUserByFirstName:
  *   get:
- *     summary: Search for a user by first name
+ *     summary: get for a user by first name
  *     tags: [Users]
  *     parameters:
  *       - in: query

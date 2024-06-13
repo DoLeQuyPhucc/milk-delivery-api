@@ -145,9 +145,9 @@
  *               properties:
  *                 message:
  *                   type: string
- * /api/products/searchProductByName:
+ * /api/products/getProductByName:
  *   get:
- *     summary: Search products by name
+ *     summary: get products by name
  *     tags: [Product]
  *     security:
  *       - bearerAuth: []
@@ -157,7 +157,7 @@
  *         required: true
  *         schema:
  *           type: string
- *         description: Product name to search for
+ *         description: Product name to get for
  *     responses:
  *       200:
  *         description: A list of products matching the name
@@ -347,7 +347,7 @@ export const deleteProduct = async (req, res) => {
 };
 
 // Tìm kiếm sản phẩm theo tên
-export const searchProductByName = async (req, res) => {
+export const getProductByName = async (req, res) => {
   const { name } = req.query;
 
   if (!name) {
