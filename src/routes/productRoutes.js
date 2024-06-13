@@ -4,7 +4,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  searchProductByName,
+  getProductByName,
   getProductsPaged,
 } from "../controllers/productController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -23,8 +23,8 @@ router.put("/updateProduct/:id", authenticateToken, updateProduct);
 // DELETE /api/products/deleteProduct/:id
 router.delete("/deleteProduct/:id", authenticateToken, deleteProduct);
 
-// GET /api/products/searchProductByName
-router.get("/searchProductByName", searchProductByName);
+// GET /api/products/getProductByName
+router.get("/getProductByName", getProductByName);
 
 // GET /api/products/paged
 router.get("/paged", getProductsPaged);

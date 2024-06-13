@@ -185,9 +185,9 @@ import ProductModel from "../models/productModel.js";
  *               properties:
  *                 message:
  *                   type: string
- * /api/products/searchProductByName:
+ * /api/products/getProductByName:
  *   get:
- *     summary: Search products by name
+ *     summary: get products by name
  *     tags: [Product]
  *     parameters:
  *       - in: query
@@ -345,7 +345,7 @@ export const deleteProduct = async (req, res) => {
 };
 
 // Tìm kiếm sản phẩm theo tên
-export const searchProductByName = async (req, res) => {
+export const getProductByName = async (req, res) => {
   const { name } = req.query;
 
   if (!name) {

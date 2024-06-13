@@ -5,7 +5,7 @@ import {
   getUserById,
   updateUser,
   deleteUser,
-  searchUserByFirstName,
+  getUserByFirstName,
 } from "../controllers/usersController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
@@ -26,7 +26,7 @@ router.put("/updateUser/:id", authenticateToken, updateUser);
 // DELETE /api/users/deleteUser/:id
 router.delete("/deleteUser/:id", authenticateToken, deleteUser);
 
-// GET /api/users/searchUserByFirstName
-router.get("/searchUserByFirstName", authenticateToken, searchUserByFirstName);
+// GET /api/users/getUserByFirstName
+router.get("/getUserByFirstName", authenticateToken, getUserByFirstName);
 
 export default router;

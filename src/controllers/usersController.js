@@ -219,9 +219,9 @@ import UserModel from "../models/userModel.js";
  *                 message:
  *                   type: string
  * 
- * /api/users/searchUserByFirstName:
+ * /api/users/getUserByFirstName:
  *   get:
- *     summary: Search for a user by first name
+ *     summary: get for a user by first name
  *     tags: [Users]
  *     parameters:
  *       - in: query
@@ -282,12 +282,11 @@ export const createUser = async (req, res) => {
 
   try {
     const savedUser = await newUser.save();
-    res.status(201).json({message: "User created successfully"});
+    res.status(201).json({ message: "User created successfully" });
   } catch (err) {
     res.status(409).json({ message: err.message });
   }
 };
-
 
 // Lấy thông tin người dùng theo ID
 export const getUserById = async (req, res) => {
@@ -320,7 +319,7 @@ export const updateUser = async (req, res) => {
       { ...user, id },
       { new: true }
     );
-    res.status(200).json({message: "User updated successfully"});
+    res.status(200).json({ message: "User updated successfully" });
   } catch (err) {
     res.status(409).json({ message: err.message });
   }
@@ -342,7 +341,7 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-export const searchUserByFirstName = async (req, res) => {
+export const getUserByFirstName = async (req, res) => {
   const { firstName } = req.query;
 
   try {
