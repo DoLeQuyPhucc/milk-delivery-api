@@ -4,12 +4,10 @@
  *   name: Users
  *   description: API for users
  */
-import mongoose from "mongoose";
-import UserModel from "../models/userModel.js";
 
 /**
  * @swagger
-    components:
+ * components:
  *   schemas:
  *     User:
  *       type: object
@@ -52,7 +50,10 @@ import UserModel from "../models/userModel.js";
  *         role: admin
  *         password: "password123"
  *         address: "123 Main St, Anytown, USA"
- *
+ */
+
+/**
+ * @swagger
  * /api/users/getAllUsers:
  *   get:
  *     summary: Retrieve a list of users
@@ -66,7 +67,20 @@ import UserModel from "../models/userModel.js";
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/User'
- * /api/users/createUser:
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+
+/**
+ * @swagger
+ * /api/users/:
  *   post:
  *     summary: Create a new user
  *     tags: [Users]
@@ -75,41 +89,7 @@ import UserModel from "../models/userModel.js";
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *                 description: The user's first name.
- *               lastName:
- *                 type: string
- *                 description: The user's last name.
- *               avartaImage:
- *                 type: string
- *                 description: The user's avatar image.
- *               email:
- *                 type: string
- *                 description: The user's email address.
- *               phoneNumber:
- *                 type: string
- *                 description: The user's phone number.
- *               role:
- *                 type: string
- *                 description: The user's role.
- *               password:
- *                 type: string
- *                 description: The user's password.
- *               address:
- *                 type: string
- *                 description: The user's address.
- *             example:
- *               firstName: John
- *               lastName: Doe
- *               avartaImage: "https://example.com/avatar.jpg"
- *               email: johndoe@example.com
- *               phoneNumber: "123-456-7890"
- *               role: admin
- *               password: "password123"
- *               address: "123 Main St, Anytown, USA"
+ *             $ref: '#/components/schemas/User'
  *     responses:
  *       201:
  *         description: The created user
@@ -135,10 +115,13 @@ import UserModel from "../models/userModel.js";
  *               properties:
  *                 message:
  *                   type: string
- *
- * /api/users/updateUser/{id}:
- *   put:
- *     summary: Update a user
+ */
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Retrieve user by ID
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -146,7 +129,43 @@ import UserModel from "../models/userModel.js";
  *         schema:
  *           type: string
  *         required: true
- *         description: The user id
+ *         description: The user ID
+ *     responses:
+ *       200:
+ *         description: The user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *
+ *   put:
+ *     summary: Update a user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
  *     requestBody:
  *       required: true
  *       content:
@@ -155,13 +174,13 @@ import UserModel from "../models/userModel.js";
  *             $ref: '#/components/schemas/User'
  *     responses:
  *       200:
- *         description: The updated user
+ *         description: User updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
  *       404:
- *         description: No user with that id
+ *         description: User not found
  *         content:
  *           application/json:
  *             schema:
@@ -179,9 +198,8 @@ import UserModel from "../models/userModel.js";
  *                 message:
  *                   type: string
  *
- * /api/users/deleteUser/{id}:
  *   delete:
- *     summary: Delete a user
+ *     summary: Delete a user by ID
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -189,7 +207,7 @@ import UserModel from "../models/userModel.js";
  *         schema:
  *           type: string
  *         required: true
- *         description: The user id
+ *         description: The user ID
  *     responses:
  *       200:
  *         description: User deleted successfully
@@ -201,7 +219,7 @@ import UserModel from "../models/userModel.js";
  *                 message:
  *                   type: string
  *       404:
- *         description: No user with that id
+ *         description: User not found
  *         content:
  *           application/json:
  *             schema:
@@ -218,10 +236,10 @@ import UserModel from "../models/userModel.js";
  *               properties:
  *                 message:
  *                   type: string
- * 
- * /api/users/getUserByFirstName:
+ *
+ * /api/users/searchUserByFirstName:
  *   get:
- *     summary: get for a user by first name
+ *     summary: Search for a user by first name
  *     tags: [Users]
  *     parameters:
  *       - in: query
@@ -232,14 +250,24 @@ import UserModel from "../models/userModel.js";
  *         description: The first name of the user
  *     responses:
  *       200:
- *         description: The user was found
+ *         description: The user
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
- *       404:
- *         description: The user was not found
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
+
 // Lấy tất cả người dùng
 export const getAllUsers = async (req, res) => {
   try {
