@@ -104,9 +104,13 @@ const signIn = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET_KEY,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     // Exclude the password from the response
     const { password: userPassword, ...userWithoutPassword } = user.toObject();
