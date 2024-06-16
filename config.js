@@ -1,11 +1,11 @@
 import express from "express";
 import mongoose from "mongoose";
+import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cors from "cors";
 
-// import userRoutes from "./routes/userRoutes.js";
 import appRoutes from "./src/routes/appRoutes.js";
 
 dotenv.config();
@@ -16,6 +16,12 @@ const corsOptions = {
   methods: "GET,POST,PUT,DELETE",
   allowedHeaders: "Content-Type,Authorization",
 };
+
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
+
+// Middleware to parse URL-encoded bodies
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Use CORS middleware
 app.use(cors(corsOptions));
@@ -54,6 +60,23 @@ const swaggerOptions = {
       {
         url: "https://milk-delivery-api.onrender.com",
       },
+      {
+        url: "http://localhost:8000",
+      },
+    ],
+    components: {
+      securitySchemes: {
+        Bearer: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        Bearer: [],
+      },
     ],
   },
   // Update here to include the path to your controllers
@@ -67,7 +90,6 @@ app.use(
   swaggerUi.setup(specs, { explorer: true })
 );
 
-// app.use("/allusers", userRoutes);
 app.use("/api", appRoutes);
 
 app.use((req, res, next) => {
