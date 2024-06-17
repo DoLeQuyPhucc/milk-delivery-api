@@ -1,18 +1,18 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  userID: {
+  googleId: {
     type: String,
     required: true,
     unique: true,
   },
   firstName: {
     type: String,
-    required: true,
+    required: false,
   },
   lastName: {
     type: String,
-    required: true,
+    required: false,
   },
   avatarImage: {
     type: String,
@@ -25,18 +25,19 @@ const userSchema = new mongoose.Schema({
   },
   phoneNumber: {
     type: String,
-    required: true,
+    required: false,
   },
   role: {
     type: String,
-    required: true,
+    required: false,
   },
   password: {
     type: String,
-    required: true,
+    required: false,
   },
 });
 
 const User = mongoose.model("User", userSchema);
 
 export default User;
+
