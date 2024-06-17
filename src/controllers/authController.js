@@ -1,3 +1,10 @@
+import { OAuth2Client } from "google-auth-library";
+import jwt from "jsonwebtoken";
+import User from "../models/authModel.js";
+const client = new OAuth2Client(
+  "1080348899893-b1ek0t1uk5psnlvft04q6h8btduccuqs.apps.googleusercontent.com"
+);
+
 /**
  * @swagger
  * components:
@@ -47,9 +54,6 @@
  *   description: API for user authentication
  */
 
-import User from "../models/authModel.js";
-import jwt from "jsonwebtoken";
-
 /**
  * @swagger
  * /api/auth/signin:
@@ -98,6 +102,15 @@ const signIn = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Check if the user has a password set
+    if (user.googleId) {
+      return res
+        .status(400)
+        .send(
+          "This email is registered via Google. Please set a password first."
+        );
+    }
+
     // Check if password is correct (plain text comparison)
     if (password !== user.password) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -122,6 +135,48 @@ const signIn = async (req, res) => {
   }
 };
 
+// Google Login function
+const googleLogin = async (req, res) => {
+  const { token } = req.body;
+  try {
+    console.log("Received token:", token);
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    console.log("Token payload:", payload);
+
+    const { sub, email, name, picture, given_name, family_name } = payload;
+
+    let user = await User.findOne({ googleId: sub });
+
+    if (!user) {
+      user = new User({
+        googleId: sub,
+        email,
+        firstName: given_name || "Unknown",
+        lastName: family_name || "User",
+        avatarImage: picture,
+        phoneNumber: "N/A",
+        role: "USER",
+        password: "N/A",
+      });
+      await user.save();
+    }
+
+    const jwtToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
+
+    res.json({ user, token: jwtToken });
+  } catch (error) {
+    console.error("Error verifying Google token:", error);
+    res.status(401).json({ message: "Invalid Google token" });
+  }
+};
+
 // Sign Out function
 const signOut = (req, res) => {
   // Simply return a success message as JWT will be discarded client-side
@@ -129,4 +184,4 @@ const signOut = (req, res) => {
 };
 
 // Export the functions as default
-export default { signIn, signOut };
+export default { signIn, signOut, googleLogin };
