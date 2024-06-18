@@ -270,9 +270,6 @@
 import mongoose from "mongoose";
 import UserModel from "../models/userModel.js";
 
-import mongoose from "mongoose";
-import UserModel from "../models/userModel.js";
-
 // Lấy tất cả người dùng
 export const getAllUsers = async (req, res) => {
   try {
