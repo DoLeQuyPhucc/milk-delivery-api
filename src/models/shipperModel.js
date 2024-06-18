@@ -10,9 +10,8 @@ const storeSchema = new mongoose.Schema(
 export const shipperSchema = new mongoose.Schema(
   {
     _id: mongoose.Schema.Types.ObjectId,
-    name: String,
-    address: String,
-    phone: Number,
+    shipperName: String,
+    phone: String, // Change from Number to String
     store: storeSchema,
   },
   {
