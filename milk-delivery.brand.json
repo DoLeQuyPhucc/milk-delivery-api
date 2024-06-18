@@ -1,0 +1,27 @@
+[{
+  "_id": {
+    "$oid": "66679ee91e0d9ffecd7df6d7"
+  },
+  "name": "Vinamilk",
+  "email": "contact@vinamilk.com",
+  "address": "123 Vinamilk St, HCMC, Vietnam",
+  "phone": "0123456789"
+},
+{
+  "_id": {
+    "$oid": "66679ee91e0d9ffecd7df6d8"
+  },
+  "name": "TH True Milk",
+  "email": "contact@thtruemilk.com",
+  "address": "456 TH True Milk St, Hanoi, Vietnam",
+  "phone": "0987654321"
+},
+{
+  "_id": {
+    "$oid": "66679ee91e0d9ffecd7df6d9"
+  },
+  "name": "Milo",
+  "email": "contact@milo.com",
+  "address": "789 Milo St, HCMC, Vietnam",
+  "phone": "0123987654"
+}]

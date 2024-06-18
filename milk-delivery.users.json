@@ -1,0 +1,79 @@
+[{
+  "_id": {
+    "$oid": "6663ce77a6116a98ba9b6698"
+  },
+  "firstName": "Thiên",
+  "lastName": "Phúc",
+  "avartaImage": "image_url_user_1",
+  "email": "thienphuc8102003@gmail.com",
+  "phoneNumber": "0967630810",
+  "role": "SHIPPER",
+  "password": "123456",
+  "address": "105 Lê Văn Việt, HCM"
+},
+{
+  "_id": {
+    "$oid": "6663ce77a6116a98ba9b6699"
+  },
+  "firstName": "Tấn",
+  "lastName": "Đạt",
+  "avartaImage": "image_url_user_1",
+  "email": "toimqn09@gmail.com",
+  "phoneNumber": "0905558630",
+  "role": "MANAGER",
+  "password": "123456",
+  "address": "57 Trường Chinh, HCM"
+},
+{
+  "_id": {
+    "$oid": "6663ce77a6116a98ba9b669a"
+  },
+  "firstName": "Huy",
+  "lastName": "Nhân",
+  "avartaImage": "image_url_user_1",
+  "email": "dnhnhan2003@gmail.com",
+  "phoneNumber": "0908961308",
+  "role": "ADMIN",
+  "password": "123456",
+  "address": "15 Võ Nguyên Giáp, HCM"
+},
+{
+  "_id": {
+    "$oid": "6663ce77a6116a98ba9b669b"
+  },
+  "firstName": "Thiên",
+  "lastName": "Ân",
+  "avartaImage": "image_url_user_1",
+  "email": "phanthienan01072003@gmail.com",
+  "phoneNumber": "0901199563",
+  "role": "MANAGER",
+  "password": "123456",
+  "address": "55 Hai Bà Trưng, HCM"
+},
+{
+  "_id": {
+    "$oid": "6663ce77a6116a98ba9b669c"
+  },
+  "firstName": "Quý",
+  "lastName": "Phúc",
+  "avartaImage": "image_url_user_1",
+  "email": "phucdlq@gmail.com",
+  "phoneNumber": "0868363762",
+  "role": "USER",
+  "password": "123456",
+  "address": "23 S9.03 VinHome, Quận 9, HCM"
+},
+{
+  "_id": {
+    "$oid": "666ff00294b709f006d362ae"
+  },
+  "googleId": "115336767359436002775",
+  "firstName": "Bột",
+  "lastName": "Phúc",
+  "avatarImage": "https://lh3.googleusercontent.com/a/ACg8ocIGGgr3MYTSmCpGV5FmybWi6eCybRSNUOy01E8PJbSfWsMzETqc=s96-c",
+  "email": "hanhhakio6789@gmail.com",
+  "phoneNumber": "N/A",
+  "role": "USER",
+  "password": "N/A",
+  "__v": 0
+}]

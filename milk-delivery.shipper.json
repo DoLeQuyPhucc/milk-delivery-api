@@ -1,0 +1,20 @@
+[{
+  "_id": {
+    "$oid": "6667aefab41ed28189b304fa"
+  },
+  "name": "Nguyễn Hải Hào",
+  "phone": "0987654321",
+  "store": {
+    "storeID": "6663d0a1a6116a98ba9b66ae"
+  }
+},
+{
+  "_id": {
+    "$oid": "6667aefab41ed28189b304fb"
+  },
+  "name": "Hồ Văn Đại",
+  "phone": "0987654322",
+  "store": {
+    "storeID": "6663d0a1a6116a98ba9b66ae"
+  }
+}]

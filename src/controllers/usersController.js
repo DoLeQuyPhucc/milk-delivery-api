@@ -267,6 +267,8 @@
  *                 message:
  *                   type: string
  */
+import mongoose from "mongoose";
+import UserModel from "../models/userModel.js";
 
 import mongoose from "mongoose";
 import UserModel from "../models/userModel.js";
