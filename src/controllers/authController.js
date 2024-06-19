@@ -104,11 +104,9 @@ const signIn = async (req, res) => {
 
     // Check if the user has a password set
     if (user.googleId) {
-      return res
-        .status(400)
-        .send(
-          "This email is registered via Google. Please set a password first."
-        );
+      return res.status(400).json({
+        message: "You already have an account with this email.",
+      });
     }
 
     // Check if password is correct (plain text comparison)
