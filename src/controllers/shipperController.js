@@ -28,11 +28,10 @@
  *              type: string
  *              description: Store ID
  */
- 
 
 /**
  * @swagger
- * /api/shippers/getAllShipperss:
+ * /api/shippers/getAllShippers:
  *   get:
  *     summary: Get all shipper
  *     tags: [Shippers]
@@ -163,7 +162,7 @@ export const createShipper = async (req, res) => {
   newShipper
     .save()
     .then((result) => {
-      res.status(201).json({ message: "Shippers created successfully"});
+      res.status(201).json({ message: "Shippers created successfully" });
     })
     .catch((error) => {
       res.status(500).json({ message: error.message });
