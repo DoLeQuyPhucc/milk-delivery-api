@@ -266,7 +266,7 @@ export const getProductById = async (req, res) => {
   }
 
   try {
-    const product = await ProductModel.findById(id);
+    const product = await ProductModel.findById(id).populate('brandID');
     if (!product) {
       return res.status(404).json({ message: "No product with that ID" });
     }
