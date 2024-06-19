@@ -8,10 +8,8 @@ const brandSchema = new mongoose.Schema(
     address: String,
     phone: Number,
   },
-  {
-    versionKey: false,
-  }
+  { versionKey: false }
 );
 
-const BrandModel = mongoose.model("brand", brandSchema);
+const BrandModel = mongoose.model("Brand", brandSchema);
 export default BrandModel;

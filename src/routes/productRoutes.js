@@ -16,7 +16,7 @@ const router = express.Router();
 router.get("/getAllProducts", authenticateToken, getAllProducts);
 
 // GET /api/products/:id
-router.get("/:id", authenticateToken, getProductById);
+router.get("/:id", getProductById);
 
 // POST /api/products/
 router.post("/", authenticateToken, createProduct);
