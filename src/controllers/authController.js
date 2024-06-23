@@ -115,7 +115,7 @@ const signIn = async (req, res) => {
     // Exclude the password from the response
     const { password: userPassword, ...userWithoutPassword } = user.toObject();
 
-    res.json({ user: userWithoutPassword, token });
+    res.json({ token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
