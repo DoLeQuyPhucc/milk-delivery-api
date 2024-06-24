@@ -84,6 +84,31 @@ import jwt from "jsonwebtoken";
  *       '500':
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /api/auth/refreshToken:
+ *   post:
+ *     summary: Refresh the authentication token
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully refreshed the token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: The new JWT token for authentication.
+ *       '401':
+ *         description: Unauthorized, invalid or expired token
+ *       '500':
+ *         description: Server error
+ */
 // Sign In function
 // authController.js
 import UserModel from "../models/userModel.js";
