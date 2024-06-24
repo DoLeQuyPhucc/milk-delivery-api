@@ -12,6 +12,9 @@ import brandRoutes from "./brandRoutes.js";
 import storeRoutes from "./storeRoutes.js";
 
 import shipperRoutes from "./shipperRoutes.js";
+
+import orderRoutes from "./orderRoutes.js";
+
 const router = express.Router();
 
 router.use("/users", userRoutes);
@@ -27,5 +30,7 @@ router.use("/brands", brandRoutes);
 router.use("/stores", storeRoutes);
 
 router.use("/shippers", shipperRoutes);
+
+router.use("/orders", orderRoutes);
 
 export default router;
