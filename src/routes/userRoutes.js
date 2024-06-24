@@ -6,6 +6,7 @@ import {
   updateUser,
   deleteUser,
   getUserByFirstName,
+  getCurrentUser,
 } from "../controllers/usersController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
@@ -28,5 +29,8 @@ router.delete("/:id", authenticateToken, deleteUser);
 
 // GET /api/users/getUserByFirstName
 router.get("/getUserByFirstName", authenticateToken, getUserByFirstName);
+
+// GET /api/users/me
+router.get("/me", authenticateToken, getCurrentUser);
 
 export default router;

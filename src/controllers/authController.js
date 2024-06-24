@@ -85,25 +85,23 @@ import jwt from "jsonwebtoken";
  *         description: Server error
  */
 // Sign In function
+// authController.js
+import UserModel from "../models/userModel.js";
+
 const signIn = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log("Received email:", email);
-
   try {
-    // Find user by email
-    const user = await User.findOne({ email });
+    const user = await UserModel.findOne({ email });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if password is correct (plain text comparison)
     if (password !== user.password) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.SECRET_KEY,
@@ -112,9 +110,6 @@ const signIn = async (req, res) => {
       }
     );
 
-    // Exclude the password from the response
-    const { password: userPassword, ...userWithoutPassword } = user.toObject();
-
     res.json({ token });
   } catch (err) {
     console.error(err);
@@ -122,11 +117,16 @@ const signIn = async (req, res) => {
   }
 };
 
-// Sign Out function
 const signOut = (req, res) => {
-  // Simply return a success message as JWT will be discarded client-side
   res.json({ message: "Signed out successfully" });
 };
 
-// Export the functions as default
-export default { signIn, signOut };
+const refreshToken = (req, res) => {
+  const { userId, role } = req.user;
+  const newToken = jwt.sign({ userId, role }, process.env.SECRET_KEY, {
+    expiresIn: "1h",
+  });
+  res.json({ token: newToken });
+};
+
+export default { signIn, signOut, refreshToken };

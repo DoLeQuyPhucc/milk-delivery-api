@@ -270,7 +270,6 @@
 import mongoose from "mongoose";
 import UserModel from "../models/userModel.js";
 
-// Lấy tất cả người dùng
 export const getAllUsers = async (req, res) => {
   try {
     const users = await UserModel.find();
@@ -280,8 +279,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Tạo người dùng mới
-// Tạo người dùng mới
 export const createUser = async (req, res) => {
   const {
     firstName,
@@ -318,7 +315,6 @@ export const createUser = async (req, res) => {
   }
 };
 
-// Lấy thông tin người dùng theo ID
 export const getUserById = async (req, res) => {
   const { id } = req.params;
 
@@ -334,7 +330,17 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// Cập nhật người dùng
+export const getCurrentUser = async (req, res) => {
+  const { userId } = req.user;
+
+  try {
+    const user = await UserModel.findById(userId);
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
 export const updateUser = async (req, res) => {
   const { id } = req.params;
   const user = req.body;
@@ -355,7 +361,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// Xóa người dùng
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
 
