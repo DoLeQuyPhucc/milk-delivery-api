@@ -303,7 +303,13 @@ export const getPackageById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const packages = await PackageModel.findById(id);
+    const packages = await PackageModel.findById(id).populate({
+      path: 'products.product',
+      populate: {
+        path: 'brandID',
+        model: 'Brand'
+      }
+    });
     res.status(200).json(packages);
   } catch (err) {
     console.error(err.message);
@@ -319,7 +325,6 @@ export const updatePackage = async (req, res) => {
     let totalAmount = 0;
     let totalPrice = 0;
 
-    // Using map to create an array of product data
     const productDetails = products.map((product) => {
       const { product: productData, quantity } = product;
       return {
