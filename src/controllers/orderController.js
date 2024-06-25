@@ -163,9 +163,8 @@ export const createOrder = async (req, res) => {
     userID,
     isPaid,
     paidAt,
-    isDelivered,
     deliveredAt,
-    circleShipment,
+    numberOfShipment,
   } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(packageID)) {
@@ -187,6 +186,53 @@ export const createOrder = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    const circleShipment = {
+      numberOfShipment,
+      tracking: [],
+    };
+
+    const deliveryDaysMonWedFri = [1, 3, 5];
+    const deliveryDaysTueThiSat = [2, 4, 6];
+    let currentDeliveryCount = 0;
+    let currentDate = new Date(deliveredAt);
+
+    switch (currentDate.getDay()) {
+      case 1:
+      case 3:
+      case 5:
+        while (currentDeliveryCount < numberOfShipment) {
+          if (deliveryDaysMonWedFri.includes(currentDate.getDay())) {
+            let trackingItem = {
+              trackingNumber: currentDeliveryCount,
+              isDelivered: false,
+              deliveredAt: new Date(currentDate),
+            };
+            circleShipment.tracking.push(trackingItem);
+            currentDeliveryCount++;
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+        break;
+      case 2:
+      case 4:
+      case 6:
+        while (currentDeliveryCount < numberOfShipment) {
+          if (deliveryDaysTueThiSat.includes(currentDate.getDay())) {
+            let trackingItem = {
+              trackingNumber: currentDeliveryCount,
+              isDelivered: false,
+              deliveredAt: new Date(currentDate),
+            };
+            circleShipment.tracking.push(trackingItem);
+            currentDeliveryCount++;
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+        break;
+      default:
+        break;
+    }
+
     const order = new OrderModel({
       package: packages,
       shippingAddress,
@@ -194,7 +240,6 @@ export const createOrder = async (req, res) => {
       user: user,
       isPaid,
       paidAt,
-      isDelivered,
       deliveredAt,
       circleShipment,
     });
@@ -203,8 +248,6 @@ export const createOrder = async (req, res) => {
     res.status(200).json({
       message: "Order created successfully",
       newOrder,
-      packages,
-      user,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

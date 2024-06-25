@@ -44,10 +44,9 @@ const OrderSchema = new mongoose.Schema({
   },
   isPaid: { type: Boolean, default: false },
   paidAt: { type: Date },
-  isDelivered: { type: Boolean, default: false },
   deliveredAt: { type: Date },
   circleShipment: {
-    typeShipment: { type: String, required: true },
+    numberOfShipment: { type: Number, required: true },
     tracking: [
       {
         trackingNumber: { type: String, required: true },
