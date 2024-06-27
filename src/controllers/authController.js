@@ -119,7 +119,7 @@ const signIn = async (req, res) => {
       { userId: user._id, role: user.role },
       process.env.SECRET_KEY,
       {
-        expiresIn: "1h",
+        expiresIn: "1d",
       }
     );
 
@@ -165,7 +165,7 @@ const googleLogin = async (req, res) => {
     }
 
     const jwtToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-      expiresIn: "1h",
+      expiresIn: "1d",
     });
 
     res.json({ user, token: jwtToken });
