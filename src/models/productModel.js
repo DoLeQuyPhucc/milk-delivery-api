@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const productSchema = new mongoose.Schema(
   {
     _id: mongoose.Schema.Types.ObjectId,
-    brandID: String,
+    brandID: { type: mongoose.Schema.Types.ObjectId, ref: "Brand" },
     name: String,
     productImage: String,
     description: String,
@@ -11,8 +11,8 @@ const productSchema = new mongoose.Schema(
     stockQuantity: Number,
   },
   { versionKey: false }
-); // set versionKey to false
+);
 
-const ProductModel = mongoose.model("products", productSchema);
+const ProductModel = mongoose.model("Product", productSchema);
 
 export default ProductModel;

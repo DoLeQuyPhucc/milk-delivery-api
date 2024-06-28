@@ -1,3 +1,10 @@
+import { OAuth2Client } from "google-auth-library";
+import jwt from "jsonwebtoken";
+import User from "../models/authModel.js";
+const client = new OAuth2Client(
+  "1080348899893-b1ek0t1uk5psnlvft04q6h8btduccuqs.apps.googleusercontent.com"
+);
+
 /**
  * @swagger
  * components:
@@ -46,9 +53,6 @@
  *   name: Authentication
  *   description: API for user authentication
  */
-
-import User from "../models/authModel.js";
-import jwt from "jsonwebtoken";
 
 /**
  * @swagger
@@ -123,6 +127,14 @@ const signIn = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Check if the user has a password set
+    if (user.googleId) {
+      return res.status(400).json({
+        message: "You already have an account with this email.",
+      });
+    }
+
+    // Check if password is correct (plain text comparison)
     if (password !== user.password) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -131,7 +143,7 @@ const signIn = async (req, res) => {
       { userId: user._id, role: user.role },
       process.env.SECRET_KEY,
       {
-        expiresIn: "1h",
+        expiresIn: "1d",
       }
     );
 
@@ -142,6 +154,49 @@ const signIn = async (req, res) => {
   }
 };
 
+// Google Login function
+const googleLogin = async (req, res) => {
+  const { token } = req.body;
+  try {
+    console.log("Received token:", token);
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    console.log("Token payload:", payload);
+
+    const { sub, email, name, picture, given_name, family_name } = payload;
+
+    let user = await User.findOne({ googleId: sub });
+
+    if (!user) {
+      user = new User({
+        googleId: sub,
+        email,
+        firstName: given_name || "Unknown",
+        lastName: family_name || "User",
+        avatarImage: picture,
+        phoneNumber: "N/A",
+        role: "USER",
+        password: "N/A",
+      });
+      await user.save();
+    }
+
+    const jwtToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+      expiresIn: "1d",
+    });
+
+    res.json({ user, token: jwtToken });
+  } catch (error) {
+    console.error("Error verifying Google token:", error);
+    res.status(401).json({ message: "Invalid Google token" });
+  }
+};
+
+// Sign Out function
 const signOut = (req, res) => {
   res.json({ message: "Signed out successfully" });
 };
@@ -154,4 +209,5 @@ const refreshToken = (req, res) => {
   res.json({ token: newToken });
 };
 
-export default { signIn, signOut, refreshToken };
+export default { signIn, signOut, refreshToken, googleLogin };
+

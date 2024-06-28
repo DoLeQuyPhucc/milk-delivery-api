@@ -388,3 +388,32 @@ export const getUserByFirstName = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Chỉnh sửa thông tin người dùng
+export const editUser = async (req, res) => {
+  const { userId } = req.user;
+  const { email, password, phoneNumber, firstName, lastName } = req.body;
+
+  try {
+    const user = await UserModel.findById(userId);
+
+    console.log(user);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (email) user.email = email;
+    if (password) user.password = password;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+
+    await user.save();
+
+    res.json({ message: "User information updated successfully", user });
+  } catch (error) {
+    console.error("Error updating user information:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
