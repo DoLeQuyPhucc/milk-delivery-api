@@ -15,6 +15,8 @@ import shipperRoutes from "./shipperRoutes.js";
 
 import orderRoutes from "./orderRoutes.js";
 
+import paymentRoutes from "./paymentRoutes.js";
+
 const router = express.Router();
 
 router.use("/users", userRoutes);
@@ -32,5 +34,7 @@ router.use("/stores", storeRoutes);
 router.use("/shippers", shipperRoutes);
 
 router.use("/orders", orderRoutes);
+
+router.use("/payments", paymentRoutes)
 
 export default router;
