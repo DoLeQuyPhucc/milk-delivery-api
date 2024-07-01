@@ -88,15 +88,92 @@ const client = new OAuth2Client(
  *       '500':
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /api/auth/refreshToken:
+ *   post:
+ *     summary: Refresh the authentication token
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully refreshed the token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: The new JWT token for authentication.
+ *       '401':
+ *         description: Unauthorized, invalid or expired token
+ *       '500':
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /api/auth/signup:
+ *   post:
+ *     summary: Sign up a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - password
+ *               - phoneNumber
+ *               - role
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               phoneNumber:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       '201':
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 token:
+ *                   type: string
+ *       '400':
+ *         description: User already exists
+ *       '500':
+ *         description: Error creating user
+ */
 // Sign In function
+// authController.js
+import UserModel from "../models/userModel.js";
+
 const signIn = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log("Received email:", email);
-
   try {
-    // Find user by email
-    const user = await User.findOne({ email });
+    const user = await UserModel.findOne({ email });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -109,12 +186,12 @@ const signIn = async (req, res) => {
       });
     }
 
-    // Check if password is correct (plain text comparison)
-    if (password !== user.password) {
+    // Use comparePassword method to check if password is correct
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.SECRET_KEY,
@@ -123,15 +200,102 @@ const signIn = async (req, res) => {
       }
     );
 
-    // Exclude the password from the response
-    const { password: userPassword, ...userWithoutPassword } = user.toObject();
-
-    res.json({ user: userWithoutPassword, token });
+    res.json({ token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Sign Up function
+const signUp = async (req, res) => {
+  const { firstName, lastName, email, password, phoneNumber, role } = req.body;
+
+  try {
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Create new user
+    const user = new UserModel({
+      _id: new mongoose.Types.ObjectId(),
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      role,
+      password: hashedPassword,
+      // Set other fields as necessary
+    });
+
+    // Save user
+    await user.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+
+    // Respond with token and user details
+    res.status(201).json({ user, token });
+  } catch (error) {
+    console.error("Error during sign up:", error);
+    res.status(500).json({ message: "Error creating user" });
+  }
+};
+
+// Google Sign Up function
+const googleSignup = async (req, res) => {
+  const { firstName, lastName, email, password, phoneNumber, role, googleId } = req.body;
+
+  try {
+    // Check if user already exists
+    let user = await UserModel.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    let hashedPassword = password;
+    if (!googleId) {
+      // Hash password if it's not a Google sign-up
+      hashedPassword = await bcrypt.hash(password, 12);
+    }
+
+    // Create new user
+    user = new UserModel({
+      _id: new mongoose.Types.ObjectId(),
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      role,
+      password: hashedPassword,
+      googleId: googleId || null,
+      // Set other fields as necessary
+    });
+
+    // Save user
+    await user.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+
+    // Respond with token and user details
+    res.status(201).json({ user, token });
+  } catch (error) {
+    console.error("Error during sign up:", error);
+    res.status(500).json({ message: "Error creating user" });
+  }
+};
+
 
 // Google Login function
 const googleLogin = async (req, res) => {
@@ -177,9 +341,16 @@ const googleLogin = async (req, res) => {
 
 // Sign Out function
 const signOut = (req, res) => {
-  // Simply return a success message as JWT will be discarded client-side
   res.json({ message: "Signed out successfully" });
 };
 
-// Export the functions as default
-export default { signIn, signOut, googleLogin };
+const refreshToken = (req, res) => {
+  const { userId, role } = req.user;
+  const newToken = jwt.sign({ userId, role }, process.env.SECRET_KEY, {
+    expiresIn: "1h",
+  });
+  res.json({ token: newToken });
+};
+
+export default { signIn, signOut, refreshToken, googleLogin, googleSignup, signUp };
+

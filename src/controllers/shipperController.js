@@ -76,7 +76,7 @@
  *     tags: [Shippers]
  *     parameters:
  *       - in: path
- *         shipperName: id
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -172,6 +172,9 @@ export const createShipper = async (req, res) => {
 export const getShipperById = async (req, res) => {
   const { id } = req.params;
 
+  if(!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid ID supplied" });
+  }
   try {
     const shipper = await ShipperModel.findById(id);
     if (!shipper) {
