@@ -113,6 +113,58 @@ const client = new OAuth2Client(
  *       '500':
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /api/auth/signup:
+ *   post:
+ *     summary: Sign up a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - password
+ *               - phoneNumber
+ *               - role
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               phoneNumber:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       '201':
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 token:
+ *                   type: string
+ *       '400':
+ *         description: User already exists
+ *       '500':
+ *         description: Error creating user
+ */
 // Sign In function
 // authController.js
 import UserModel from "../models/userModel.js";
@@ -134,8 +186,9 @@ const signIn = async (req, res) => {
       });
     }
 
-    // Check if password is correct (plain text comparison)
-    if (password !== user.password) {
+    // Use comparePassword method to check if password is correct
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
@@ -153,6 +206,96 @@ const signIn = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Sign Up function
+const signUp = async (req, res) => {
+  const { firstName, lastName, email, password, phoneNumber, role } = req.body;
+
+  try {
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Create new user
+    const user = new UserModel({
+      _id: new mongoose.Types.ObjectId(),
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      role,
+      password: hashedPassword,
+      // Set other fields as necessary
+    });
+
+    // Save user
+    await user.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+
+    // Respond with token and user details
+    res.status(201).json({ user, token });
+  } catch (error) {
+    console.error("Error during sign up:", error);
+    res.status(500).json({ message: "Error creating user" });
+  }
+};
+
+// Google Sign Up function
+const googleSignup = async (req, res) => {
+  const { firstName, lastName, email, password, phoneNumber, role, googleId } = req.body;
+
+  try {
+    // Check if user already exists
+    let user = await UserModel.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    let hashedPassword = password;
+    if (!googleId) {
+      // Hash password if it's not a Google sign-up
+      hashedPassword = await bcrypt.hash(password, 12);
+    }
+
+    // Create new user
+    user = new UserModel({
+      _id: new mongoose.Types.ObjectId(),
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      role,
+      password: hashedPassword,
+      googleId: googleId || null,
+      // Set other fields as necessary
+    });
+
+    // Save user
+    await user.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+
+    // Respond with token and user details
+    res.status(201).json({ user, token });
+  } catch (error) {
+    console.error("Error during sign up:", error);
+    res.status(500).json({ message: "Error creating user" });
+  }
+};
+
 
 // Google Login function
 const googleLogin = async (req, res) => {
@@ -209,5 +352,5 @@ const refreshToken = (req, res) => {
   res.json({ token: newToken });
 };
 
-export default { signIn, signOut, refreshToken, googleLogin };
+export default { signIn, signOut, refreshToken, googleLogin, googleSignup, signUp };
 

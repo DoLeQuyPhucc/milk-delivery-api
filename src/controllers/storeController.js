@@ -69,7 +69,7 @@
  *     tags: [Stores]
  *     parameters:
  *       - in: path
- *         storeName: id
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -93,9 +93,9 @@
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *     requestBody:
  *       description: Store details
  *       content:
@@ -160,16 +160,17 @@ export const getAllStores = async (req, res) => {
 
 // Get a single store by ID
 export const getStoreById = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ message: "Store not found" });
+  }
+
   try {
-    const id = req.params.id;
-    const store = await StoreModel.findById(id).exec();
-    if (!store) {
-      res.status(404).json({ message: "Store not found" });
-    } else {
-      res.json(store);
-    }
+    const store = await StoreModel.findById(id);
+    res.status(200).json(store);
   } catch (error) {
-    res.status(500).json({ message: "Error getting store" });
+    res.status(404).json({ message: error.message });
   }
 };
 
