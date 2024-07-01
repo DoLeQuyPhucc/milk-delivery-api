@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import querystring from "qs";
-import dateFormat from "dateformat";
+import moment from "moment-timezone";
 
 const tmnCode = "51W409Q6";
 const secretKey = "5L95LTE48XCDYRP64PDH2GCEYGA45C95";
@@ -15,13 +15,11 @@ export const createPayment = (req, res) => {
       req.socket.remoteAddress ||
       req.connection.socket.remoteAddress;
 
-    // Ensure the date is correctly synchronized
-    const date = new Date();
-    const createDate = dateFormat(date, "yyyymmddHHmmss");
-    const orderId = dateFormat(date, "HHmmss");
+    const date = moment().tz("Asia/Ho_Chi_Minh");
+    const createDate = date.format("YYYYMMDDHHmmss");
+    const orderId = date.format("HHmmss");
 
-    // Adding ExpireDate parameter to prevent timeout issues
-    const expireDate = dateFormat(new Date(date.getTime() + 15 * 60 * 1000), "yyyymmddHHmmss");
+    const expireDate = date.add(15, "minutes").format("YYYYMMDDHHmmss");
 
     const {
       amount,
