@@ -165,9 +165,55 @@ const client = new OAuth2Client(
  *       '500':
  *         description: Error creating user
  */
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *  get:
+ *    summary: Get the current user
+ *    tags: [Authentication]
+ *    responses:
+ *      '200':
+ *        description: Successfully retrieved user information.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                _id:
+ *                  type: string
+ *                  example: '507f1f77bcf86cd799439011'
+ *                name:
+ *                  type: string
+ *                  example: 'John Doe'
+ *                email:
+ *                  type: string
+ *                  example: 'john.doe@example.com'
+ *      '400':
+ *        description: User not found.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *                  example: 'User not found'
+ *      '500':
+ *        description: Server error.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *                  example: 'Server error'
+ */
 // Sign In function
 // authController.js
 import UserModel from "../models/userModel.js";
+
 
 const signIn = async (req, res) => {
   const { email, password } = req.body;
@@ -193,7 +239,7 @@ const signIn = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { id: user._id, role: user.role },
       process.env.SECRET_KEY,
       {
         expiresIn: "1d",
@@ -220,13 +266,12 @@ const signUp = async (req, res) => {
 
     // Create new user
     const user = new UserModel({
-      _id: new mongoose.Types.ObjectId(),
       firstName,
       lastName,
       email,
       phoneNumber,
       role,
-      password: hashedPassword,
+      password
       // Set other fields as necessary
     });
 
@@ -248,6 +293,21 @@ const signUp = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  const { id } = req.user;
+
+  try {
+    const user = await UserModel.findById(id);
+    console.log(id);
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 // Google Sign Up function
 const googleSignup = async (req, res) => {
   const { firstName, lastName, email, password, phoneNumber, role, googleId } = req.body;
@@ -267,7 +327,6 @@ const googleSignup = async (req, res) => {
 
     // Create new user
     user = new UserModel({
-      _id: new mongoose.Types.ObjectId(),
       firstName,
       lastName,
       email,
@@ -352,5 +411,5 @@ const refreshToken = (req, res) => {
   res.json({ token: newToken });
 };
 
-export default { signIn, signOut, refreshToken, googleLogin, googleSignup, signUp };
+export default { signIn, signOut, refreshToken, googleLogin, googleSignup, signUp, getMe };
 

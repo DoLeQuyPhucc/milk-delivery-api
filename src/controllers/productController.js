@@ -11,8 +11,6 @@
  *   get:
  *     summary: Retrieve all products
  *     tags: [Product]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of products

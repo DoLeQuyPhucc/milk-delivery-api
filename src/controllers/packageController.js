@@ -253,6 +253,7 @@
  */
 
 import PackageModel from "../models/packageModel.js";
+import mongoose from "mongoose";
 
 export const createPackage = async (req, res) => {
   const { products } = req.body;

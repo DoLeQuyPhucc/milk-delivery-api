@@ -3,10 +3,8 @@ import {
   getAllUsers,
   createUser,
   getUserById,
-  updateUser,
   deleteUser,
   getUserByFirstName,
-  getCurrentUser,
   editUser,
 } from "../controllers/usersController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -20,7 +18,7 @@ router.get("/getAllUsers", authenticateToken, getAllUsers);
 router.post("/", authenticateToken, createUser);
 
 // GET /api/users/:id
-router.get("/:id", authenticateToken, getUserById);
+router.get("/getUserbyId/:id", authenticateToken, getUserById);
 
 // // PUT /api/users/:id
 // router.put("/:id", authenticateToken, updateUser);
@@ -30,9 +28,6 @@ router.delete("/:id", authenticateToken, deleteUser);
 
 // GET /api/users/getUserByFirstName
 router.get("/getUserByFirstName", authenticateToken, getUserByFirstName);
-
-// GET /api/users/me
-router.get("/me", authenticateToken, getCurrentUser);
 
 // PUT /api/users/edit
 router.put("/edit-user", authenticateToken, editUser);

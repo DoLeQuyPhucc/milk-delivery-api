@@ -7,6 +7,8 @@ const router = express.Router();
 
 router.post("/signin", authController.signIn);
 router.post("/google", authController.googleLogin);
+router.post("/signup", authController.signUp);
+router.get("/me", authenticateToken, authController.getMe);
 
 // POST /api/auth/signin
 router.post("/signout", authController.signOut);
