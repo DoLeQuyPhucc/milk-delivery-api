@@ -51,8 +51,6 @@
  *   put:
  *     summary: Update a product by ID
  *     tags: [Product]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -83,8 +81,6 @@
  *   delete:
  *     summary: Delete a product by ID
  *     tags: [Product]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

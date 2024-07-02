@@ -157,48 +157,6 @@
  *                 message:
  *                   type: string
  *
- *   put:
- *     summary: Update a user by ID
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The user ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/User'
- *     responses:
- *       200:
- *         description: User updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *       409:
- *         description: Conflict
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *
  *   delete:
  *     summary: Delete a user by ID
  *     tags: [Users]
@@ -268,6 +226,58 @@
  *                 message:
  *                   type: string
  */
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     summary: Updates a user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The user was successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: No user found with the provided ID
+ *       409:
+ *         description: Conflict, could not update the user
+ */
 import mongoose from "mongoose";
 import UserModel from "../models/userModel.js";
 
@@ -333,7 +343,7 @@ export const getUserById = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   const { id } = req.params;
-  const user = req.body;
+  const { _id, ...updateData } = req.body; 
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(404).json({ message: "No user with that id" });
@@ -342,10 +352,10 @@ export const updateUser = async (req, res) => {
   try {
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
-      { ...user, id },
+      updateData, 
       { new: true }
     );
-    res.status(200).json({ message: "User updated successfully" });
+    res.status(200).json({ message: "User updated successfully", user: updatedUser });
   } catch (err) {
     res.status(409).json({ message: err.message });
   }
