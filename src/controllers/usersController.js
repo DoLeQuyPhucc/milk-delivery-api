@@ -330,16 +330,20 @@ export const getUserById = async (req, res) => {
   }
 };
 
-export const getCurrentUser = async (req, res) => {
-  const { userId } = req.user;
+export const getMe = async (req, res) => {
+  const { userId } = req.user; 
 
   try {
     const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-}
+};
 
 export const updateUser = async (req, res) => {
   const { id } = req.params;

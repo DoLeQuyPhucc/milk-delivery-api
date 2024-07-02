@@ -6,7 +6,7 @@ import {
   updateUser,
   deleteUser,
   getUserByFirstName,
-  getCurrentUser,
+  getMe,
   editUser,
 } from "../controllers/usersController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -32,7 +32,7 @@ router.delete("/:id", authenticateToken, deleteUser);
 router.get("/getUserByFirstName", authenticateToken, getUserByFirstName);
 
 // GET /api/users/me
-router.get("/me", authenticateToken, getCurrentUser);
+router.get("/me", authenticateToken, getMe);
 
 // PUT /api/users/edit
 router.put("/edit-user", authenticateToken, editUser);
