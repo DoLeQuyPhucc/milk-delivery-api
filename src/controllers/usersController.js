@@ -117,9 +117,10 @@
  *                   type: string
  */
 
+
 /**
  * @swagger
- * /api/users/{id}:
+ * /api/users/getUserById/{id}:
  *   get:
  *     summary: Retrieve user by ID
  *     tags: [Users]
@@ -137,7 +138,7 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
- *       404:
+ *       400:
  *         description: User not found
  *         content:
  *           application/json:
@@ -270,6 +271,7 @@
 import mongoose from "mongoose";
 import UserModel from "../models/userModel.js";
 
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await UserModel.find();
@@ -296,7 +298,6 @@ export const createUser = async (req, res) => {
   }
 
   const newUser = new UserModel({
-    _id: new mongoose.Types.ObjectId(),
     firstName,
     lastName,
     avartaImage,
@@ -319,7 +320,7 @@ export const getUserById = async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ message: "No user with that id" });
+    return res.status(404).json({ message: "User not found" });
   }
 
   try {
@@ -327,21 +328,6 @@ export const getUserById = async (req, res) => {
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }
-};
-
-export const getMe = async (req, res) => {
-  const { userId } = req.user; 
-
-  try {
-    const user = await UserModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.status(200).json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
   }
 };
 
