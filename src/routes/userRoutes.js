@@ -3,7 +3,6 @@ import {
   getAllUsers,
   createUser,
   getUserById,
-  updateUser,
   deleteUser,
   getUserByFirstName,
   getMe,
@@ -20,7 +19,7 @@ router.get("/getAllUsers", authenticateToken, getAllUsers);
 router.post("/", authenticateToken, createUser);
 
 // GET /api/users/:id
-router.get("/:id", authenticateToken, getUserById);
+router.get("/getUserbyId/:id", authenticateToken, getUserById);
 
 // // PUT /api/users/:id
 // router.put("/:id", authenticateToken, updateUser);

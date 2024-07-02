@@ -119,7 +119,52 @@
 
 /**
  * @swagger
- * /api/users/{id}:
+ * /api/users/me:
+ *  get:
+ *    summary: Get the current user
+ *    tags: [Users]
+ *    responses:
+ *      '200':
+ *        description: Successfully retrieved user information.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                _id:
+ *                  type: string
+ *                  example: '507f1f77bcf86cd799439011'
+ *                name:
+ *                  type: string
+ *                  example: 'John Doe'
+ *                email:
+ *                  type: string
+ *                  example: 'john.doe@example.com'
+ *      '400':
+ *        description: User not found.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *                  example: 'User not found'
+ *      '500':
+ *        description: Server error.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *                  example: 'Server error'
+ */
+
+/**
+ * @swagger
+ * /api/users/getUserById/{id}:
  *   get:
  *     summary: Retrieve user by ID
  *     tags: [Users]
@@ -137,7 +182,7 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
- *       404:
+ *       400:
  *         description: User not found
  *         content:
  *           application/json:
@@ -270,6 +315,7 @@
 import mongoose from "mongoose";
 import UserModel from "../models/userModel.js";
 
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await UserModel.find();
@@ -296,7 +342,6 @@ export const createUser = async (req, res) => {
   }
 
   const newUser = new UserModel({
-    _id: new mongoose.Types.ObjectId(),
     firstName,
     lastName,
     avartaImage,
@@ -319,7 +364,7 @@ export const getUserById = async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ message: "No user with that id" });
+    return res.status(404).json({ message: "User not found" });
   }
 
   try {
@@ -331,12 +376,13 @@ export const getUserById = async (req, res) => {
 };
 
 export const getMe = async (req, res) => {
-  const { userId } = req.user; 
+  const { id } = req.user; 
 
   try {
-    const user = await UserModel.findById(userId);
+    const user = await UserModel.findById(id);
+    console.log(id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(400).json({ message: "User not found" });
     }
     res.status(200).json(user);
   } catch (err) {

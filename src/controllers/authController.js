@@ -194,7 +194,7 @@ const signIn = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { id: user._id, role: user.role },
       process.env.SECRET_KEY,
       {
         expiresIn: "1d",
@@ -221,13 +221,12 @@ const signUp = async (req, res) => {
 
     // Create new user
     const user = new UserModel({
-      _id: new mongoose.Types.ObjectId(),
       firstName,
       lastName,
       email,
       phoneNumber,
       role,
-      password: hashedPassword,
+      password
       // Set other fields as necessary
     });
 
@@ -268,7 +267,6 @@ const googleSignup = async (req, res) => {
 
     // Create new user
     user = new UserModel({
-      _id: new mongoose.Types.ObjectId(),
       firstName,
       lastName,
       email,
