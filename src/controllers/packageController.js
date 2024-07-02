@@ -292,7 +292,13 @@ export const createPackage = async (req, res) => {
 
 export const getAllPackages = async (req, res) => {
   try {
-    const packages = await PackageModel.find();
+    const packages = await PackageModel.find().populate({
+      path: "products.product",
+      populate: {
+        path: "brandID",
+        model: "Brand",
+      },
+    });
     res.status(200).json(packages);
   } catch (err) {
     console.error(err.message);
