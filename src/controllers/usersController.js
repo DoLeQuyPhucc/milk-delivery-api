@@ -117,50 +117,6 @@
  *                   type: string
  */
 
-/**
- * @swagger
- * /api/users/me:
- *  get:
- *    summary: Get the current user
- *    tags: [Users]
- *    responses:
- *      '200':
- *        description: Successfully retrieved user information.
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                _id:
- *                  type: string
- *                  example: '507f1f77bcf86cd799439011'
- *                name:
- *                  type: string
- *                  example: 'John Doe'
- *                email:
- *                  type: string
- *                  example: 'john.doe@example.com'
- *      '400':
- *        description: User not found.
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                message:
- *                  type: string
- *                  example: 'User not found'
- *      '500':
- *        description: Server error.
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                message:
- *                  type: string
- *                  example: 'Server error'
- */
 
 /**
  * @swagger
@@ -372,22 +328,6 @@ export const getUserById = async (req, res) => {
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }
-};
-
-export const getMe = async (req, res) => {
-  const { id } = req.user; 
-
-  try {
-    const user = await UserModel.findById(id);
-    console.log(id);
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-    res.status(200).json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
   }
 };
 
