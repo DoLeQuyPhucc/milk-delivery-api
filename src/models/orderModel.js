@@ -52,6 +52,7 @@ const OrderSchema = new mongoose.Schema({
         trackingNumber: { type: String, required: true },
         isDelivered: { type: Boolean, default: false },
         deliveredAt: { type: Date },
+        isPaid: { type: Boolean, default: false },
       },
     ],
   },

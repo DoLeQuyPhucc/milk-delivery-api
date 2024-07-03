@@ -5,6 +5,7 @@ import {
   getUserById,
   deleteUser,
   getUserByFirstName,
+  updateUser,
   editUser,
 } from "../controllers/usersController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -18,13 +19,13 @@ router.get("/getAllUsers", authenticateToken, getAllUsers);
 router.post("/", authenticateToken, createUser);
 
 // GET /api/users/:id
-router.get("/getUserbyId/:id", authenticateToken, getUserById);
+router.get("/getUserById/:id", authenticateToken, getUserById);
 
-// // PUT /api/users/:id
-// router.put("/:id", authenticateToken, updateUser);
+// PUT /api/users/:id
+router.put("/:id", authenticateToken, updateUser);
 
 // DELETE /api/users/:id
-router.delete("/:id", authenticateToken, deleteUser);
+router.delete("/getUserById/:id", authenticateToken, deleteUser);
 
 // GET /api/users/getUserByFirstName
 router.get("/getUserByFirstName", authenticateToken, getUserByFirstName);

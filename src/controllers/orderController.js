@@ -206,6 +206,7 @@ export const createOrder = async (req, res) => {
               trackingNumber: currentDeliveryCount,
               isDelivered: false,
               deliveredAt: new Date(currentDate),
+              isPaid: isPaid ? true : false,
             };
             circleShipment.tracking.push(trackingItem);
             currentDeliveryCount++;
@@ -222,6 +223,7 @@ export const createOrder = async (req, res) => {
               trackingNumber: currentDeliveryCount,
               isDelivered: false,
               deliveredAt: new Date(currentDate),
+              isPaid: isPaid ? true : false,
             };
             circleShipment.tracking.push(trackingItem);
             currentDeliveryCount++;
