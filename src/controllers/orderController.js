@@ -176,8 +176,8 @@ export const createOrder = async (req, res) => {
   }
 
   try {
-    const packages = await PackageModel.findById(packageID);
-    if (!packages) {
+    const pkg = await PackageModel.findById(packageID);
+    if (!pkg) {
       return res.status(404).json({ message: "Package not found" });
     }
 
@@ -244,7 +244,7 @@ export const createOrder = async (req, res) => {
     }
 
     const order = new OrderModel({
-      package: packages,
+      pkg: pkg,
       shippingAddress,
       paymentMethod,
       user: user,
@@ -274,6 +274,43 @@ export const deleteOrder = async (req, res) => {
   try {
     await OrderModel.findByIdAndDelete(id);
     res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getListOrderByDate = async (req, res) => {
+  const { date } = req.params;
+
+  if (!date) {
+    return res.status(400).json({ error: "Date query parameter is required" });
+  }
+
+  const targetDate = new Date(date);
+  try {
+    const orders = await OrderModel.find({
+      "circleShipment.tracking.deliveredAt": targetDate,
+    }).lean();
+
+    const filteredOrders = orders
+      .map((order) => {
+        const packageDetails = order.package;
+
+        const { shippingAddress, circleShipment } = order;
+        const relevantTrackings = circleShipment.tracking.filter(
+          (tracking) =>
+            new Date(tracking.deliveredAt).getTime() === targetDate.getTime()
+        );
+
+        return relevantTrackings.map((tracking) => ({
+          package: packageDetails,
+          shippingAddress,
+          order: tracking,
+        }));
+      })
+      .flat();
+
+    res.status(200).json(filteredOrders);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

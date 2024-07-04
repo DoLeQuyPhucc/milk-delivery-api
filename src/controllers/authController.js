@@ -214,7 +214,6 @@ const client = new OAuth2Client(
 // authController.js
 import UserModel from "../models/userModel.js";
 
-
 const signIn = async (req, res) => {
   const { email, password } = req.body;
 
@@ -246,7 +245,7 @@ const signIn = async (req, res) => {
       }
     );
 
-    res.json({ token });
+    res.json({ token, user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -271,7 +270,7 @@ const signUp = async (req, res) => {
       email,
       phoneNumber,
       role,
-      password
+      password,
       // Set other fields as necessary
     });
 
@@ -310,7 +309,8 @@ const getMe = async (req, res) => {
 };
 // Google Sign Up function
 const googleSignup = async (req, res) => {
-  const { firstName, lastName, email, password, phoneNumber, role, googleId } = req.body;
+  const { firstName, lastName, email, password, phoneNumber, role, googleId } =
+    req.body;
 
   try {
     // Check if user already exists
@@ -354,7 +354,6 @@ const googleSignup = async (req, res) => {
     res.status(500).json({ message: "Error creating user" });
   }
 };
-
 
 // Google Login function
 const googleLogin = async (req, res) => {
@@ -411,5 +410,12 @@ const refreshToken = (req, res) => {
   res.json({ token: newToken });
 };
 
-export default { signIn, signOut, refreshToken, googleLogin, googleSignup, signUp, getMe };
-
+export default {
+  signIn,
+  signOut,
+  refreshToken,
+  googleLogin,
+  googleSignup,
+  signUp,
+  getMe,
+};

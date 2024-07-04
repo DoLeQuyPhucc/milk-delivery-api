@@ -3,7 +3,7 @@ import {
   createOrder,
   getAllOrders,
   getOrderById,
-  //   updateOrder,
+  getListOrderByDate,
   deleteOrder,
 } from "../controllers/orderController.js";
 
@@ -14,7 +14,7 @@ const router = express.Router();
 router.post("/", authenticateToken, createOrder);
 router.get("/getAllOrders", authenticateToken, getAllOrders);
 router.get("/:id", authenticateToken, getOrderById);
-// router.put("/:id",authenticateToken, updateOrder);
+router.get("/getByDate/:date", getListOrderByDate);
 router.delete("/:id", authenticateToken, deleteOrder);
 
 export default router;
