@@ -32,19 +32,10 @@ const OrderSchema = new mongoose.Schema({
     country: { type: String, required: true },
   },
   paymentMethod: { type: String, required: true },
-  user: {
-    _id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    avatarImage: { type: String, required: false },
-    email: { type: String, required: true },
-    phoneNumber: { type: String, required: true },
-    role: { type: String, required: true },
-    address: { type: String, required: true },
-  },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   isPaid: { type: Boolean, default: false },
-  paidAt: { type: Date },
-  deliveredAt: { type: Date },
+  paidAt: { type: String },
+  deliveredAt: { type: String },
   circleShipment: {
     numberOfShipment: { type: Number, required: true },
     tracking: [
