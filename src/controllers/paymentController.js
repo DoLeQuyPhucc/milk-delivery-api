@@ -150,6 +150,14 @@ export const vnpayReturn = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
           }
 
+          const formatDate = (date) => {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          };
+
           const circleShipment = {
             numberOfShipment,
             tracking: [],
@@ -205,8 +213,8 @@ export const vnpayReturn = async (req, res) => {
             paymentMethod,
             user: user,
             isPaid,
-            paidAt: moment(paidAt).startOf("day").toDate(),
-            deliveredAt: moment(deliveredAt).startOf("day").toDate(),
+            paidAt: paidAt ? formatDate(paidAt) : null,
+            deliveredAt: formatDate(deliveredAt),
             circleShipment,
           });
 
@@ -218,7 +226,6 @@ export const vnpayReturn = async (req, res) => {
 
           res.status(200).json({
             message: "Payment success and order created successfully",
-            order: newOrder,
           });
         } catch (error) {
           console.error("Error creating order: ", error);
