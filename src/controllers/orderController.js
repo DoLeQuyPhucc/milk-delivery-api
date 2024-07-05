@@ -213,9 +213,10 @@ export const createOrder = async (req, res) => {
             let trackingItem = {
               trackingNumber: currentDeliveryCount,
               isDelivered: false,
-              deliveredAt: new Date(currentDate),
+              deliveredAt: formatDate(new Date(currentDate)),
               isPaid: isPaid ? true : false,
             };
+            console.log(trackingItem.deliveredAt);
             circleShipment.tracking.push(trackingItem);
             currentDeliveryCount++;
           }
@@ -230,7 +231,7 @@ export const createOrder = async (req, res) => {
             let trackingItem = {
               trackingNumber: currentDeliveryCount,
               isDelivered: false,
-              deliveredAt: new Date(currentDate),
+              deliveredAt: formatDate(new Date(currentDate)),
               isPaid: isPaid ? true : false,
             };
             circleShipment.tracking.push(trackingItem);
@@ -244,7 +245,7 @@ export const createOrder = async (req, res) => {
     }
 
     const order = new OrderModel({
-      pkg: pkg,
+      package: pkg,
       shippingAddress,
       paymentMethod,
       user: user,
@@ -286,7 +287,7 @@ export const getListOrderByDate = async (req, res) => {
     return res.status(400).json({ error: "Date query parameter is required" });
   }
 
-  const targetDate = new Date(date);
+  const targetDate = date;
   try {
     const orders = await OrderModel.find({
       "circleShipment.tracking.deliveredAt": targetDate,
@@ -298,8 +299,7 @@ export const getListOrderByDate = async (req, res) => {
 
         const { shippingAddress, circleShipment } = order;
         const relevantTrackings = circleShipment.tracking.filter(
-          (tracking) =>
-            new Date(tracking.deliveredAt).getTime() === targetDate.getTime()
+          (tracking) => tracking.deliveredAt === targetDate
         );
 
         return relevantTrackings.map((tracking) => ({
