@@ -95,8 +95,18 @@ const client = new OAuth2Client(
  *   post:
  *     summary: Refresh the authentication token
  *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: The refresh token
+ *             example:
+ *               refreshToken: "your_refresh_token"
  *     responses:
  *       '200':
  *         description: Successfully refreshed the token
@@ -105,7 +115,7 @@ const client = new OAuth2Client(
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 accessToken:
  *                   type: string
  *                   description: The new JWT token for authentication.
  *       '401':
@@ -113,6 +123,7 @@ const client = new OAuth2Client(
  *       '500':
  *         description: Server error
  */
+
 
 /**
  * @swagger
@@ -215,6 +226,7 @@ const client = new OAuth2Client(
 import UserModel from "../models/userModel.js";
 
 
+// Sign In function
 const signIn = async (req, res) => {
   const { email, password } = req.body;
 
@@ -225,33 +237,53 @@ const signIn = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user has a password set
-    if (user.googleId) {
-      return res.status(400).json({
-        message: "You already have an account with this email.",
-      });
-    }
-
-    // Use comparePassword method to check if password is correct
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.SECRET_KEY,
-      {
-        expiresIn: "1d",
-      }
+      { expiresIn: "1h" }
     );
 
-    res.json({ token });
+    const refreshToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.SECRET_KEY,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ accessToken, refreshToken });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+// Refresh Token function
+const refreshToken = (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
+  jwt.verify(refreshToken, process.env.SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const accessToken = jwt.sign(
+      { id: decoded.id, role: decoded.role },
+      process.env.SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.json({ accessToken });
+  });
+};
+
 
 // Sign Up function
 const signUp = async (req, res) => {
@@ -403,13 +435,6 @@ const signOut = (req, res) => {
   res.json({ message: "Signed out successfully" });
 };
 
-const refreshToken = (req, res) => {
-  const { userId, role } = req.user;
-  const newToken = jwt.sign({ userId, role }, process.env.SECRET_KEY, {
-    expiresIn: "1h",
-  });
-  res.json({ token: newToken });
-};
 
 export default { signIn, signOut, refreshToken, googleLogin, googleSignup, signUp, getMe };
 
