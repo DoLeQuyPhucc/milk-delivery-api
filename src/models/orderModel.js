@@ -16,7 +16,7 @@ const OrderSchema = new mongoose.Schema({
           description: { type: String, required: true },
           price: { type: Number, required: true },
           stockQuantity: { type: Number, required: true },
-          brandID: { type: mongoose.Schema.Types.ObjectId, required: true },
+          brandID: { type: mongoose.Schema.Types.ObjectId, ref: "Brand", required: true },
         },
         quantity: { type: Number, required: true },
       },

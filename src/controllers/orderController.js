@@ -131,6 +131,7 @@ import mongoose from "mongoose";
 import OrderModel from "../models/orderModel.js";
 import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
+import BrandModel from "../models/brandModel.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -149,9 +150,12 @@ export const getOrdersByUser = async (req, res) => {
   }
 
   try {
-    const orders = await OrderModel.find({ user: userId });
+    const orders = await OrderModel.find({ user: userId }).populate({
+      path: "package.products.product.brandID",
+      model: BrandModel,
+    });
 
-    if (!orders) {
+    if (!orders.length) {
       return res.status(404).json({ message: "No orders found for this user" });
     }
 
