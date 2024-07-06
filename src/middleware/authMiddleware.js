@@ -5,17 +5,15 @@ export function authenticateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token == null) {
+  if (!token) {
     return res.sendStatus(401);
   }
 
   jwt.verify(token, secretKey, (err, decoded) => {
     if (err) {
-      console.error("Error verifying token:", err.message);
       return res.sendStatus(403);
     }
-    console.log("Decoded token:", decoded);
-    req.user = decoded; // Ensure this decoded object contains the user ID or similar identifier
+    req.user = decoded;
     next();
   });
 }
