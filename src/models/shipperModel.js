@@ -9,7 +9,6 @@ const storeSchema = new mongoose.Schema(
 
 export const shipperSchema = new mongoose.Schema(
   {
-    _id: mongoose.Schema.Types.ObjectId,
     shipperName: String,
     phone: String, // Change from Number to String
     store: storeSchema,

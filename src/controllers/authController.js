@@ -120,10 +120,11 @@ const client = new OAuth2Client(
  *                   description: The new JWT token for authentication.
  *       '401':
  *         description: Unauthorized, invalid or expired token
+ *       '403':
+ *         description: Forbidden, invalid refresh token
  *       '500':
  *         description: Server error
  */
-
 
 /**
  * @swagger
@@ -221,6 +222,120 @@ const client = new OAuth2Client(
  *                  type: string
  *                  example: 'Server error'
  */
+
+/**
+ * @swagger
+ * /api/auth/signout:
+ *   post:
+ *     summary: Sign out from the application
+ *     tags: [Authentication]
+ *     responses:
+ *       '200':
+ *         description: Successfully signed out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Signed out successfully"
+ *       '500':
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /api/auth/googleSignup:
+ *   post:
+ *     summary: Sign up a new user using Google
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - password
+ *               - phoneNumber
+ *               - role
+ *               - googleId
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               phoneNumber:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               googleId:
+ *                 type: string
+ *                 description: The Google ID of the user
+ *     responses:
+ *       '201':
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 token:
+ *                   type: string
+ *       '400':
+ *         description: User already exists
+ *       '500':
+ *         description: Error creating user
+ */
+
+/**
+ * @swagger
+ * /api/auth/googleLogin:
+ *   post:
+ *     summary: Login using Google
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: The Google token for authentication
+ *     responses:
+ *       '200':
+ *         description: Successfully logged in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 token:
+ *                   type: string
+ *       '401':
+ *         description: Invalid Google token
+ *       '500':
+ *         description: Server error
+ */
+
 // Sign In function
 // authController.js
 import UserModel from "../models/userModel.js";

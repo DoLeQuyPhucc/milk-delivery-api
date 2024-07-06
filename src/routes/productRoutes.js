@@ -31,6 +31,6 @@ router.delete("/:id", authenticateToken, deleteProduct);
 router.get("/getProductByName", authenticateToken, getProductByName);
 
 // GET /api/products/paged
-router.get("/paged", authenticateToken, getProductsPaged);
+router.get("/getProducts/paged",  getProductsPaged);
 
 export default router;

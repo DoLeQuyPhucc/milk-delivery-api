@@ -165,39 +165,69 @@
  *         description: Bad request, missing name parameter
  *       500:
  *         description: Internal server error
- *
- * /api/products/paged:
- *   get:
- *     summary: Retrieve products in a paged manner
- *     tags: [Product]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         required: true
- *         schema:
- *           type: integer
- *         description: Page number (1-based)
- *       - in: query
- *         name: size
- *         required: true
- *         schema:
- *           type: integer
- *         description: Number of products per page
- *     responses:
- *       200:
- *         description: A list of products for the requested page
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Product'
- *       400:
- *         description: Bad request, invalid page or size parameter
- *       500:
- *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/products/getProducts/paged:
+ *  get:
+ *    summary: Get products by page
+ *    tags: [Product]
+ *    description: Retrieves products in a paginated format based on the provided page and size parameters.
+ *    parameters:
+ *      - in: query
+ *        name: page
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *        required: true
+ *        description: The page number of the paginated results.
+ *      - in: query
+ *        name: size
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *        required: true
+ *        description: The number of items to return per page.
+ *    responses:
+ *      '200':
+ *        description: A paginated list of products.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                products:
+ *                  type: array
+ *                  items:
+ *                    $ref: '#/components/schemas/Product'
+ *                currentPage:
+ *                  type: integer
+ *                  format: int32
+ *                totalPages:
+ *                  type: integer
+ *                  format: int32
+ *                totalProducts:
+ *                  type: integer
+ *                  format: int32
+ *      '400':
+ *        description: Invalid page or size parameter.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *      '500':
+ *        description: Internal server error.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
  */
 
 /**
@@ -372,8 +402,16 @@ export const getProductsPaged = async (req, res) => {
 
   try {
     const products = await ProductModel.find().limit(limit).skip(skip);
-    res.status(200).json(products);
+    const totalProducts = await ProductModel.countDocuments();
+    res.status(200).json({
+      products,
+      currentPage: parseInt(page, 10),
+      totalPages: Math.ceil(totalProducts / limit),
+      totalProducts
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
+}
+
+
