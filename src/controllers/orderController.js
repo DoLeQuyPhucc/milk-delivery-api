@@ -141,6 +141,26 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
+export const getOrdersByUser = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Invalid user ID" });
+  }
+
+  try {
+    const orders = await OrderModel.find({ user: userId });
+
+    if (!orders) {
+      return res.status(404).json({ message: "No orders found for this user" });
+    }
+
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getOrderById = async (req, res) => {
   try {
     const id = req.params.id;
@@ -176,8 +196,8 @@ export const createOrder = async (req, res) => {
   }
 
   try {
-    const packages = await PackageModel.findById(packageID);
-    if (!packages) {
+    const pkg = await PackageModel.findById(packageID);
+    if (!pkg) {
       return res.status(404).json({ message: "Package not found" });
     }
 
@@ -185,6 +205,14 @@ export const createOrder = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    const formatDate = (date) => {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
 
     const circleShipment = {
       numberOfShipment,
@@ -205,8 +233,10 @@ export const createOrder = async (req, res) => {
             let trackingItem = {
               trackingNumber: currentDeliveryCount,
               isDelivered: false,
-              deliveredAt: new Date(currentDate),
+              deliveredAt: formatDate(new Date(currentDate)),
+              isPaid: isPaid ? true : false,
             };
+            console.log(trackingItem.deliveredAt);
             circleShipment.tracking.push(trackingItem);
             currentDeliveryCount++;
           }
@@ -221,7 +251,8 @@ export const createOrder = async (req, res) => {
             let trackingItem = {
               trackingNumber: currentDeliveryCount,
               isDelivered: false,
-              deliveredAt: new Date(currentDate),
+              deliveredAt: formatDate(new Date(currentDate)),
+              isPaid: isPaid ? true : false,
             };
             circleShipment.tracking.push(trackingItem);
             currentDeliveryCount++;
@@ -234,13 +265,13 @@ export const createOrder = async (req, res) => {
     }
 
     const order = new OrderModel({
-      package: packages,
+      package: pkg,
       shippingAddress,
       paymentMethod,
       user: user,
       isPaid,
-      paidAt,
-      deliveredAt,
+      paidAt: paidAt ? formatDate(paidAt) : null,
+      deliveredAt: formatDate(deliveredAt),
       circleShipment,
     });
 
@@ -264,6 +295,42 @@ export const deleteOrder = async (req, res) => {
   try {
     await OrderModel.findByIdAndDelete(id);
     res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getListOrderByDate = async (req, res) => {
+  const { date } = req.params;
+
+  if (!date) {
+    return res.status(400).json({ error: "Date query parameter is required" });
+  }
+
+  const targetDate = date;
+  try {
+    const orders = await OrderModel.find({
+      "circleShipment.tracking.deliveredAt": targetDate,
+    }).lean();
+
+    const filteredOrders = orders
+      .map((order) => {
+        const packageDetails = order.package;
+
+        const { shippingAddress, circleShipment } = order;
+        const relevantTrackings = circleShipment.tracking.filter(
+          (tracking) => tracking.deliveredAt === targetDate
+        );
+
+        return relevantTrackings.map((tracking) => ({
+          package: packageDetails,
+          shippingAddress,
+          order: tracking,
+        }));
+      })
+      .flat();
+
+    res.status(200).json(filteredOrders);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

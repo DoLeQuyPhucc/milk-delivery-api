@@ -1,24 +1,22 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema({
   orderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order',
-    required: true,
-  },
-  amount: {
-    type: Number,
-    required: true,
-  },
-  vnpayParams: {
-    type: Map,
-    of: String,
-    required: true,
-  },
-  paymentStatus: {
     type: String,
-    enum: ['pending', 'success', 'failed'],
-    default: 'pending',
+    required: true,
+  },
+  vnp_Params: {
+    type: Object,
+    required: true,
+  },
+  orderData: {
+    type: Object,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["pending", "completed", "failed"],
+    default: "pending",
   },
   createdAt: {
     type: Date,
@@ -30,6 +28,6 @@ const paymentSchema = new mongoose.Schema({
   },
 });
 
-const Payment = mongoose.model('Payment', paymentSchema);
+const PaymentModel = mongoose.model("Payment", paymentSchema);
 
-export default Payment;
+export default PaymentModel;

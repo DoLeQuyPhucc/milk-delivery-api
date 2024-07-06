@@ -1,13 +1,28 @@
 import crypto from "crypto";
 import querystring from "qs";
 import moment from "moment-timezone";
+import mongoose from "mongoose";
+import OrderModel from "../models/orderModel.js";
+import PackageModel from "../models/packageModel.js";
+import UserModel from "../models/userModel.js";
+import PaymentModel from "../models/paymentModel.js"; // Import PaymentModel
 
 const tmnCode = "51W409Q6";
 const secretKey = "5L95LTE48XCDYRP64PDH2GCEYGA45C95";
 const vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-const returnUrl = "http://localhost:8000/api/payments/vnpay_return";
+const returnUrl = "http://10.0.2.2:8000/api/payments/vnpay_return";
 
-export const createPayment = (req, res) => {
+// Sort object function
+function sortObject(obj) {
+  const sorted = {};
+  const keys = Object.keys(obj).sort();
+  for (const key of keys) {
+    sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, "+");
+  }
+  return sorted;
+}
+
+export const createPayment = async (req, res) => {
   try {
     const ipAddr =
       req.headers["x-forwarded-for"] ||
@@ -62,6 +77,15 @@ export const createPayment = (req, res) => {
 
     console.log("Payment URL generated: ", paymentUrl);
 
+    // Lưu trữ thông tin thanh toán trong cơ sở dữ liệu
+    const payment = new PaymentModel({
+      orderId,
+      vnp_Params,
+      orderData: req.body,
+      status: "pending",
+    });
+    await payment.save();
+
     res.json({ vnpUrl: paymentUrl });
   } catch (error) {
     console.error("Error generating payment URL: ", error);
@@ -69,7 +93,7 @@ export const createPayment = (req, res) => {
   }
 };
 
-export const vnpayReturn = (req, res) => {
+export const vnpayReturn = async (req, res) => {
   try {
     let vnp_Params = req.query;
     const secureHash = vnp_Params["vnp_SecureHash"];
@@ -84,25 +108,139 @@ export const vnpayReturn = (req, res) => {
     const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
     if (secureHash === signed) {
-      res.json({
-        message: "Payment success",
-        code: vnp_Params["vnp_ResponseCode"],
-        data: req.query,
+      // Tìm thông tin thanh toán trong cơ sở dữ liệu
+      const payment = await PaymentModel.findOne({
+        orderId: vnp_Params.vnp_TxnRef,
       });
+
+      if (!payment) {
+        return res.status(404).json({ message: "Payment not found" });
+      }
+
+      const { orderData } = payment;
+
+      if (vnp_Params["vnp_ResponseCode"] === "00") {
+        try {
+          const {
+            packageID,
+            shippingAddress,
+            paymentMethod,
+            userID,
+            isPaid,
+            paidAt,
+            deliveredAt,
+            numberOfShipment,
+          } = orderData;
+
+          if (!mongoose.Types.ObjectId.isValid(packageID)) {
+            return res.status(404).json({ message: "No package with that id" });
+          }
+
+          if (!mongoose.Types.ObjectId.isValid(userID)) {
+            return res.status(404).json({ message: "No user with that id" });
+          }
+
+          const packages = await PackageModel.findById(packageID);
+          if (!packages) {
+            return res.status(404).json({ message: "Package not found" });
+          }
+
+          const user = await UserModel.findById(userID);
+          if (!user) {
+            return res.status(404).json({ message: "User not found" });
+          }
+
+          const formatDate = (date) => {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          };
+
+          const circleShipment = {
+            numberOfShipment,
+            tracking: [],
+          };
+
+          const deliveryDaysMonWedFri = [1, 3, 5];
+          const deliveryDaysTueThuSat = [2, 4, 6];
+          let currentDeliveryCount = 0;
+          let currentDate = new Date(deliveredAt);
+
+          switch (currentDate.getDay()) {
+            case 1:
+            case 3:
+            case 5:
+              while (currentDeliveryCount < numberOfShipment) {
+                if (deliveryDaysMonWedFri.includes(currentDate.getDay())) {
+                  let trackingItem = {
+                    trackingNumber: currentDeliveryCount,
+                    isDelivered: false,
+                    deliveredAt: new Date(currentDate),
+                    isPaid: isPaid ? true : false,
+                  };
+                  circleShipment.tracking.push(trackingItem);
+                  currentDeliveryCount++;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+              }
+              break;
+            case 2:
+            case 4:
+            case 6:
+              while (currentDeliveryCount < numberOfShipment) {
+                if (deliveryDaysTueThuSat.includes(currentDate.getDay())) {
+                  let trackingItem = {
+                    trackingNumber: currentDeliveryCount,
+                    isDelivered: false,
+                    deliveredAt: new Date(currentDate),
+                    isPaid: isPaid ? true : false,
+                  };
+                  circleShipment.tracking.push(trackingItem);
+                  currentDeliveryCount++;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+              }
+              break;
+            default:
+              break;
+          }
+
+          const order = new OrderModel({
+            package: packages,
+            shippingAddress,
+            paymentMethod,
+            user: user,
+            isPaid,
+            paidAt: paidAt ? formatDate(paidAt) : null,
+            deliveredAt: formatDate(deliveredAt),
+            circleShipment,
+          });
+
+          const newOrder = await order.save();
+
+          // Cập nhật trạng thái thanh toán
+          payment.status = "completed";
+          await payment.save();
+
+          res.status(200).json({
+            message: "Payment success and order created successfully",
+          });
+        } catch (error) {
+          console.error("Error creating order: ", error);
+          res.status(500).json({ message: "Error creating order" });
+        }
+      } else {
+        payment.status = "failed";
+        await payment.save();
+        res.status(200).json({ message: "Payment failed" });
+      }
     } else {
-      res.json({ message: "Payment failed", code: "97", data: req.query });
+      res.status(400).json({ message: "Invalid signature" });
     }
   } catch (error) {
-    console.error("Error processing vnpay return: ", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error processing payment return: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-function sortObject(obj) {
-  const sorted = {};
-  const keys = Object.keys(obj).sort();
-  for (const key of keys) {
-    sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, "+");
-  }
-  return sorted;
-}
