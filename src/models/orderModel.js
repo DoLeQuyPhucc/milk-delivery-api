@@ -16,7 +16,11 @@ const OrderSchema = new mongoose.Schema({
           description: { type: String, required: true },
           price: { type: Number, required: true },
           stockQuantity: { type: Number, required: true },
-          brandID: { type: mongoose.Schema.Types.ObjectId, ref: "Brand", required: true },
+          brandID: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Brand",
+            required: true,
+          },
         },
         quantity: { type: Number, required: true },
       },
@@ -36,6 +40,11 @@ const OrderSchema = new mongoose.Schema({
   isPaid: { type: Boolean, default: false },
   paidAt: { type: String },
   deliveredAt: { type: String },
+  status: {
+    type: String,
+    enum: ["Pending", "Out for Delivery", "Delivered", "Cancelled"],
+    default: "Pending",
+  },
   circleShipment: {
     numberOfShipment: { type: Number, required: true },
     tracking: [
@@ -48,6 +57,26 @@ const OrderSchema = new mongoose.Schema({
     ],
   },
 });
+
+OrderSchema.methods.updateStatus = function () {
+  const order = this;
+  const allDelivered = order.circleShipment.tracking.every(
+    (shipment) => shipment.isDelivered
+  );
+  const anyDelivered = order.circleShipment.tracking.some(
+    (shipment) => shipment.isDelivered
+  );
+
+  if (allDelivered) {
+    order.status = "Delivered";
+  } else if (anyDelivered) {
+    order.status = "Out for Delivery";
+  } else {
+    order.status = "Pending";
+  }
+
+  // Note: "On Hold" and "Cancelled" should be handled manually through an admin or shipper action
+};
 
 const OrderModel = mongoose.model("Order", OrderSchema);
 

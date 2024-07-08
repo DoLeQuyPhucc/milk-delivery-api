@@ -224,9 +224,7 @@ export const vnpayReturn = async (req, res) => {
           payment.status = "completed";
           await payment.save();
 
-          res.status(200).json({
-            message: "Payment success and order created successfully",
-          });
+          res.redirect("exp://192.168.1.8:8081/--/order-result");
         } catch (error) {
           console.error("Error creating order: ", error);
           res.status(500).json({ message: "Error creating order" });
