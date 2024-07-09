@@ -165,39 +165,127 @@
  *         description: Bad request, missing name parameter
  *       500:
  *         description: Internal server error
- *
- * /api/products/paged:
+ */
+
+/**
+ * @swagger
+ * /api/products/getProducts/filtered:
  *   get:
- *     summary: Retrieve products in a paged manner
+ *     summary: Get filtered list of products
  *     tags: [Product]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
- *         required: true
  *         schema:
  *           type: integer
- *         description: Page number (1-based)
+ *           default: 1
+ *         description: Page number of the products list
  *       - in: query
  *         name: size
- *         required: true
  *         schema:
  *           type: integer
+ *           default: 10
  *         description: Number of products per page
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filter by product name
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Filter by minimum price
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Filter by maximum price
  *     responses:
  *       200:
- *         description: A list of products for the requested page
+ *         description: A filtered and paginated list of products
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Product'
- *       400:
- *         description: Bad request, invalid page or size parameter
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 totalItems:
+ *                   type: integer
  *       500:
  *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/products/getProducts/paged:
+ *  get:
+ *    summary: Get products by page
+ *    tags: [Product]
+ *    description: Retrieves products in a paginated format based on the provided page and size parameters.
+ *    parameters:
+ *      - in: query
+ *        name: page
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *        required: true
+ *        description: The page number of the paginated results.
+ *      - in: query
+ *        name: size
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *        required: true
+ *        description: The number of items to return per page.
+ *    responses:
+ *      '200':
+ *        description: A paginated list of products.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                products:
+ *                  type: array
+ *                  items:
+ *                    $ref: '#/components/schemas/Product'
+ *                currentPage:
+ *                  type: integer
+ *                  format: int32
+ *                totalPages:
+ *                  type: integer
+ *                  format: int32
+ *                totalProducts:
+ *                  type: integer
+ *                  format: int32
+ *      '400':
+ *        description: Invalid page or size parameter.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *      '500':
+ *        description: Internal server error.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
  */
 
 /**
@@ -238,13 +326,17 @@
  *           type: integer
  */
 
+
+
+
 import mongoose from "mongoose";
 import ProductModel from "../models/productModel.js";
 
 // Get all products
+// Get all products
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await ProductModel.find();
+    const products = await ProductModel.find().sort({ name: 1 });
     res.status(200).json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -372,8 +464,40 @@ export const getProductsPaged = async (req, res) => {
 
   try {
     const products = await ProductModel.find().limit(limit).skip(skip);
-    res.status(200).json(products);
+    const totalProducts = await ProductModel.countDocuments();
+    res.status(200).json({
+      products,
+      currentPage: parseInt(page, 10),
+      totalPages: Math.ceil(totalProducts / limit),
+      totalProducts
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+}
+
+export const getProductsFiltered = async (req, res) => {
+  try {
+    const { page = 1, size = 10, name, minPrice, maxPrice } = req.query;
+    let query = {};
+
+    if (name) query.name = { $regex: name, $options: 'i' };
+    if (minPrice && maxPrice) query.price = { $gte: minPrice, $lte: maxPrice };
+
+    const skip = (page - 1) * size;
+
+    const products = await ProductModel.find(query).skip(skip).limit(size);
+
+    const total = await ProductModel.countDocuments(query);
+
+    res.status(200).json({
+      data: products,
+      totalPages: Math.ceil(total / size),
+      currentPage: parseInt(page),
+      pageSize: parseInt(size),
+      totalItems: total
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

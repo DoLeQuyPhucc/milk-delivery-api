@@ -22,3 +22,31 @@ export function generateToken(user) {
   const secretKey = process.env.SECRET_KEY;
   return jwt.sign({ userId: user._id.toString(), role: user.role }, secretKey, { expiresIn: "1h" });
 }
+
+export function isAdmin(req, res, next) {
+  if (req.user.role !== "ADMIN") {
+    return res.sendStatus(403);
+  }
+  next();
+}
+
+export function isUser(req, res, next) {
+  if (req.user.role !== "USER") {
+    return res.sendStatus(403);
+  }
+  next();
+}
+
+export function isManager(req, res, next) {
+  if (req.user.role !== "MANAGER") {
+    return res.sendStatus(403);
+  }
+  next();
+}
+
+export function isShipper(req, res, next) {
+  if (req.user.role !== "SHIPPER") {
+    return res.sendStatus(403);
+  }
+  next();
+}
