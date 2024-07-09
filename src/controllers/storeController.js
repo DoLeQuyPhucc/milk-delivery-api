@@ -300,6 +300,7 @@ export const getStoresPaged = async (req, res) => {
   try {
     const { page = 1, size = 10 } = req.query;
     const skip = (page - 1) * size;
+    
     const stores = await StoreModel.find().skip(skip).limit(size);
     const total = await StoreModel.countDocuments();
     res.status(200).json({

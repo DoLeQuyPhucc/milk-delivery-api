@@ -130,6 +130,113 @@
  *       404:
  *         description: Brand not found
  */
+
+/**
+ * @swagger
+ * /api/brands/getBrands/paged:
+ *   get:
+ *     summary: Get paginated list of brands
+ *     tags: [Brands]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of brands per page
+ *     responses:
+ *       200:
+ *         description: A paginated list of brands
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 totalBrands:
+ *                   type: integer
+ *                 brands:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Brand'
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/brands/getBrands/filtered:
+ *   get:
+ *     summary: Get filtered list of brands
+ *     tags: [Brands]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of brands per page
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filter by brand name
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: Filter by brand email
+ *       - in: query
+ *         name: address
+ *         schema:
+ *           type: string
+ *         description: Filter by brand address
+ *       - in: query
+ *         name: phone
+ *         schema:
+ *           type: string
+ *         description: Filter by brand phone number
+ *     responses:
+ *       200:
+ *         description: A filtered list of brands
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Brand'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 totalBrands:
+ *                   type: integer
+ *       500:
+ *         description: Internal server error
+ */
+
 import mongoose from "mongoose";
 import BrandModel from "../models/brandModel.js";
 
@@ -211,5 +318,64 @@ export const updateBrand = async (req, res) => {
     res.status(200).json({ message: "Brand updated successfully" });
   } catch (error) {
     res.status(409).json({ message: error.message });
+  }
+};
+
+export const getBrandsPaged = async (req, res) => {
+  try {
+    let { page = 1, size = 10 } = req.query;
+    page = parseInt(page);
+    size = parseInt(size);
+    const skip = (page - 1) * size;
+
+    const totalBrands = await BrandModel.countDocuments();
+
+    const totalPages = Math.ceil(totalBrands / size);
+
+    const brands = await BrandModel.find().skip(skip).limit(size);
+
+    res.status(200).json({
+      totalPages,
+      currentPage: page,
+      pageSize: size,
+      totalBrands,
+      brands,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getBrandsFiltered = async (req, res) => {
+  try {
+    const { page = 1, size = 10, name, email, address, phone } = req.query;
+    let query = {};
+
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+    if (email) {
+      query.email = { $regex: email, $options: "i" };
+    }
+    if (address) {
+      query.address = { $regex: address, $options: "i" };
+    }
+    if (phone) {
+      query.phone = { $regex: phone, $options: "i" };
+    }
+
+    const skip = (page - 1) * size;
+    const brands = await BrandModel.find(query).skip(skip).limit(size);
+    const totalBrands = await BrandModel.countDocuments(query);
+
+    res.status(200).json({
+      data: brands,
+      totalPages: Math.ceil(totalBrands / size),
+      currentPage: parseInt(page),
+      pageSize: parseInt(size),
+      totalBrands,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

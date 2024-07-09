@@ -481,7 +481,7 @@ import UserModel from "../models/userModel.js";
 export const getAllUsers = async (req, res) => {
   try {
     let users = await UserModel.find();
-    const roleOrder = ['ADMIN', 'MANAGER', 'SHIPPER', 'CUSTOMER'];
+    const roleOrder = ['ADMIN', 'MANAGER','CUSTOMER'];
     users.sort((a, b) => {
       return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
     });
