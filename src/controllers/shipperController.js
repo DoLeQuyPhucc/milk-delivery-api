@@ -1,12 +1,5 @@
 /**
  * @swagger
- * tags:
- *   shipperName: Shippers
- *   description: API for managing shipper
- */
-
-/**
- * @swagger
  * components:
  *  schemas:
  *    Shippers:
@@ -142,7 +135,7 @@ import ShipperModel from "../models/shipperModel.js";
 
 export const getAllShippers = async (req, res) => {
   try {
-    const shipper = await ShipperModel.find();
+    const shipper = await ShipperModel.find().sort({ shipperName: 1 });
     res.status(200).json(shipper);
   } catch (error) {
     res.status(500).json({ message: error.message });

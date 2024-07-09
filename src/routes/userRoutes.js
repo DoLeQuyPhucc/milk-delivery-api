@@ -7,6 +7,10 @@ import {
   getUserByFirstName,
   updateUser,
   editUser,
+  getUserByEmail,
+  getUserByRole,
+  getUserPaged,
+  getUsersFiltered
 } from "../controllers/usersController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
@@ -33,5 +37,16 @@ router.get("/getUserByFirstName", authenticateToken, getUserByFirstName);
 // PUT /api/users/edit
 router.put("/edit-user", authenticateToken, editUser);
 
+// GET /api/users/by-email
+router.get("/by-email", authenticateToken, getUserByEmail);
+
+// GET /api/users/by-role
+router.get("/by-role", authenticateToken, getUserByRole);
+
+// GET /api/users/paged
+router.get("/paged", authenticateToken, getUserPaged);
+
+// GET /api/users/filtered
+router.get("/filtered", authenticateToken, getUsersFiltered);
 
 export default router;

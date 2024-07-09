@@ -1,12 +1,5 @@
 /**
  * @swagger
- * tags:
- *   storeName: Stores
- *   description: API for managing stores
- */
-
-/**
- * @swagger
  * components:
  *  schemas:
  *    Store:
@@ -109,6 +102,97 @@
 
 /**
  * @swagger
+ * /api/stores/getStores/paged:
+ *   get:
+ *     summary: Get stores with pagination
+ *     tags: [Stores]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number of the stores list
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of stores per page
+ *     responses:
+ *       200:
+ *         description: A paginated list of stores
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Store'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 totalItems:
+ *                   type: integer
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/stores/getStores/filtered:
+ *   get:
+ *     summary: Get filtered list of stores
+ *     tags: [Stores]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number of the stores list
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of stores per page
+ *       - in: query
+ *         name: storeName
+ *         schema:
+ *           type: string
+ *         description: Filter by store name
+ *       - in: query
+ *         name: address
+ *         schema:
+ *           type: string
+ *         description: Filter by store address
+ *     responses:
+ *       200:
+ *         description: A filtered and paginated list of stores
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Store'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ * 
+ */
+
+/**
+ * @swagger
  * /api/stores/{id}:
  *   delete:
  *     summary: Delete a store
@@ -127,6 +211,8 @@
  *       404:
  *         description: Store not found
  */
+
+
 
 import mongoose from "mongoose";
 import StoreModel from "../models/storeModel.js";
@@ -151,7 +237,7 @@ export const createStore = async (req, res) => {
 // Get all stores
 export const getAllStores = async (req, res) => {
   try {
-    const stores = await StoreModel.find().exec();
+    const stores = await StoreModel.find().sort({ storeName: 1 });
     res.json(stores);
   } catch (error) {
     res.status(500).json({ message: "Error getting stores" });
@@ -205,6 +291,45 @@ export const deleteStore = async (req, res) => {
   try {
     await StoreModel.findByIdAndDelete(id);
     res.status(200).json({ message: "Store deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getStoresPaged = async (req, res) => {
+  try {
+    const { page = 1, size = 10 } = req.query;
+    const skip = (page - 1) * size;
+    const stores = await StoreModel.find().skip(skip).limit(size);
+    const total = await StoreModel.countDocuments();
+    res.status(200).json({
+      data: stores,
+      totalPages: Math.ceil(total / size),
+      currentPage: parseInt(page),
+      pageSize: parseInt(size),
+      totalItems: total
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getStoresFiltered = async (req, res) => {
+  try {
+    const { page = 1, size = 10, storeName, address } = req.query;
+    let query = {};
+    if (storeName) query.storeName = { $regex: storeName, $options: 'i' };
+    if (address) query.address = { $regex: address, $options: 'i' };
+    const skip = (page - 1) * size;
+    const stores = await StoreModel.find(query).skip(skip).limit(size);
+    const total = await StoreModel.countDocuments(query);
+    res.status(200).json({
+      data: stores,
+      totalPages: Math.ceil(total / size),
+      currentPage: parseInt(page),
+      pageSize: parseInt(size),
+      totalItems: total
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

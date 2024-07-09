@@ -135,7 +135,7 @@ import BrandModel from "../models/brandModel.js";
 
 export const getAllBrands = async (req, res) => {
   try {
-    const brands = await BrandModel.find();
+    const brands = await BrandModel.find().sort({ name: 1 });
     res.status(200).json(brands);
   } catch (error) {
     res.status(500).json({ message: error.message });

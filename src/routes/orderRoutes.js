@@ -7,6 +7,8 @@ import {
   getListOrderByDate,
   deleteOrder,
   updateOrderStatus,
+  getFilteredOrders,
+  getOrdersPaged
 } from "../controllers/orderController.js";
 
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -20,5 +22,7 @@ router.get("/:id", authenticateToken, getOrderById);
 router.get("/getByDate/:date", getListOrderByDate);
 router.delete("/:id", authenticateToken, deleteOrder);
 router.patch("/:id/status", authenticateToken, updateOrderStatus);
+router.get("/getOrders/filtered", authenticateToken, getFilteredOrders);
+router.get("/getOrders/paged", authenticateToken, getOrdersPaged);
 
 export default router;

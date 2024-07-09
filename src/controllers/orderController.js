@@ -159,6 +159,112 @@
 
 /**
  * @swagger
+ * /api/orders/getOrders/paged:
+ *   get:
+ *     summary: Get paginated list of all orders
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of orders per page
+ *     responses:
+ *       200:
+ *         description: A paginated list of all orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Order'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/orders/getOrders/filtered:
+ *   get:
+ *     summary: Get filtered list of orders with pagination
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of orders per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: ["Pending", "Out for Delivery", "Delivered", "Cancelled"]
+ *         description: Filter by order status
+ *       - in: query
+ *         name: user
+ *         schema:
+ *           type: string
+ *         description: Filter by user ID
+ *       - in: query
+ *         name: paymentMethod
+ *         schema:
+ *           type: string
+ *         description: Filter by payment method
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by start date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by end date
+ *     responses:
+ *       200:
+ *         description: A filtered list of orders with pagination
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Order'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
  * /api/orders/{id}/status:
  *   patch:
  *     summary: Update the status of an order
@@ -195,7 +301,7 @@ import BrandModel from "../models/brandModel.js";
 
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await OrderModel.find();
+    const orders = await OrderModel.find().sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -430,3 +536,55 @@ export const updateOrderStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getOrdersPaged = async (req, res) => {
+  const page = parseInt(req.query.page) || 1; 
+  const limit = parseInt(req.query.limit) || 10; 
+  const skip = (page - 1) * limit;
+
+  try {
+    const totalDocuments = await OrderModel.countDocuments();
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    const orders = await OrderModel.find().skip(skip).limit(limit);
+
+    res.status(200).json({
+      totalPages,
+      currentPage: page,
+      limit,
+      totalDocuments,
+      orders,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getFilteredOrders = async (req, res) => {
+  try {
+    const { page = 1, size = 10, status, user, paymentMethod, startDate, endDate } = req.query;
+    let query = {};
+
+    if (status) query.status = status;
+    if (user) query.user = user;
+    if (paymentMethod) query.paymentMethod = paymentMethod;
+    if (startDate && endDate) {
+      query.createdAt = { $gte: startDate, $lte: endDate };
+    }
+
+    const skip = (page - 1) * size;
+
+    const orders = await OrderModel.find(query).skip(skip).limit(size);
+
+    const total = await OrderModel.countDocuments(query);
+
+    res.status(200).json({
+      data: orders,
+      totalPages: Math.ceil(total / size),
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

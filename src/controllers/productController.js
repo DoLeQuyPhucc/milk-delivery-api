@@ -169,6 +169,64 @@
 
 /**
  * @swagger
+ * /api/products/getProducts/filtered:
+ *   get:
+ *     summary: Get filtered list of products
+ *     tags: [Product]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number of the products list
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of products per page
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filter by product name
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Filter by minimum price
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Filter by maximum price
+ *     responses:
+ *       200:
+ *         description: A filtered and paginated list of products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 totalItems:
+ *                   type: integer
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
  * /api/products/getProducts/paged:
  *  get:
  *    summary: Get products by page
@@ -268,13 +326,17 @@
  *           type: integer
  */
 
+
+
+
 import mongoose from "mongoose";
 import ProductModel from "../models/productModel.js";
 
 // Get all products
+// Get all products
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await ProductModel.find();
+    const products = await ProductModel.find().sort({ name: 1 });
     res.status(200).json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -414,4 +476,28 @@ export const getProductsPaged = async (req, res) => {
   }
 }
 
+export const getProductsFiltered = async (req, res) => {
+  try {
+    const { page = 1, size = 10, name, minPrice, maxPrice } = req.query;
+    let query = {};
 
+    if (name) query.name = { $regex: name, $options: 'i' };
+    if (minPrice && maxPrice) query.price = { $gte: minPrice, $lte: maxPrice };
+
+    const skip = (page - 1) * size;
+
+    const products = await ProductModel.find(query).skip(skip).limit(size);
+
+    const total = await ProductModel.countDocuments(query);
+
+    res.status(200).json({
+      data: products,
+      totalPages: Math.ceil(total / size),
+      currentPage: parseInt(page),
+      pageSize: parseInt(size),
+      totalItems: total
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

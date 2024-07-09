@@ -7,6 +7,7 @@ import {
   deleteProduct,
   getProductByName,
   getProductsPaged,
+  getProductsFiltered
 } from "../controllers/productController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
@@ -32,5 +33,8 @@ router.get("/getProductByName", authenticateToken, getProductByName);
 
 // GET /api/products/paged
 router.get("/getProducts/paged",  getProductsPaged);
+
+// GET /api/products/filtered
+router.get("/getProducts/filtered", getProductsFiltered);
 
 export default router;
