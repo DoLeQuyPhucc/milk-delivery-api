@@ -17,14 +17,27 @@
  *        - paymentMethod
  *        - userID
  *        - isPaid
- *        - isDelivered
+ *        - deliveredAt
+ *        - numberOfShipment
+ *        - status
  *      properties:
  *        packageID:
  *          type: string
  *          description: ID of the package
  *        shippingAddress:
- *          type: string
+ *          type: object
  *          description: Shipping address
+ *          properties:
+ *            fullName:
+ *              type: string
+ *            phone:
+ *              type: string
+ *            address:
+ *              type: string
+ *            city:
+ *              type: string
+ *            country:
+ *              type: string
  *        paymentMethod:
  *          type: string
  *          description: Payment method
@@ -38,16 +51,33 @@
  *          type: string
  *          format: date-time
  *          description: Payment date
- *        isDelivered:
- *          type: boolean
- *          description: Delivery status
  *        deliveredAt:
  *          type: string
  *          format: date-time
  *          description: Delivery date
  *        circleShipment:
- *          type: string
+ *          type: object
  *          description: Circle shipment details
+ *          properties:
+ *            numberOfShipment:
+ *              type: integer
+ *            tracking:
+ *              type: array
+ *              items:
+ *                type: object
+ *                properties:
+ *                  trackingNumber:
+ *                    type: string
+ *                  isDelivered:
+ *                    type: boolean
+ *                  deliveredAt:
+ *                    type: string
+ *                  isPaid:
+ *                    type: boolean
+ *        status:
+ *          type: string
+ *          enum: [Pending, Out for Delivery, Delivered, On Hold, Cancelled]
+ *          description: Order status
  */
 
 /**
@@ -127,10 +157,41 @@
  *         description: Order not found
  */
 
+/**
+ * @swagger
+ * /api/orders/{id}/status:
+ *   patch:
+ *     summary: Update the status of an order
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The order ID
+ *     requestBody:
+ *       description: Order status to be updated
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [Pending, Out for Delivery, Delivered, On Hold, Cancelled]
+ *     responses:
+ *       200:
+ *         description: Order status updated successfully
+ *       404:
+ *         description: Order not found
+ */
+
 import mongoose from "mongoose";
 import OrderModel from "../models/orderModel.js";
 import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
+import BrandModel from "../models/brandModel.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -149,9 +210,12 @@ export const getOrdersByUser = async (req, res) => {
   }
 
   try {
-    const orders = await OrderModel.find({ user: userId });
+    const orders = await OrderModel.find({ user: userId }).populate({
+      path: "package.products.product.brandID",
+      model: BrandModel,
+    });
 
-    if (!orders) {
+    if (!orders.length) {
       return res.status(404).json({ message: "No orders found for this user" });
     }
 
@@ -185,6 +249,7 @@ export const createOrder = async (req, res) => {
     paidAt,
     deliveredAt,
     numberOfShipment,
+    status,
   } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(packageID)) {
@@ -220,7 +285,7 @@ export const createOrder = async (req, res) => {
     };
 
     const deliveryDaysMonWedFri = [1, 3, 5];
-    const deliveryDaysTueThiSat = [2, 4, 6];
+    const deliveryDaysTueThuSat = [2, 4, 6];
     let currentDeliveryCount = 0;
     let currentDate = new Date(deliveredAt);
 
@@ -247,7 +312,7 @@ export const createOrder = async (req, res) => {
       case 4:
       case 6:
         while (currentDeliveryCount < numberOfShipment) {
-          if (deliveryDaysTueThiSat.includes(currentDate.getDay())) {
+          if (deliveryDaysTueThuSat.includes(currentDate.getDay())) {
             let trackingItem = {
               trackingNumber: currentDeliveryCount,
               isDelivered: false,
@@ -273,6 +338,7 @@ export const createOrder = async (req, res) => {
       paidAt: paidAt ? formatDate(paidAt) : null,
       deliveredAt: formatDate(deliveredAt),
       circleShipment,
+      status: status || "Pending",
     });
 
     const newOrder = await order.save();
@@ -336,22 +402,31 @@ export const getListOrderByDate = async (req, res) => {
   }
 };
 
-// export const updateOrder = async (req, res) => {
-//   const { id } = req.params;
-//   const { name, email, address, phone } = req.body;
+export const updateOrderStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
 
-//   if (!mongoose.Types.ObjectId.isValid(id)) {
-//     return res.status(404).json({ message: "No Order with that id" });
-//   }
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ message: "No Order with that id" });
+  }
 
-//   try {
-//     const updatedOrder = await OrderModel.findByIdAndUpdate(
-//       id,
-//       { name, email, address, phone, id },
-//       { new: true }
-//     );
-//     res.status(200).json({ message: "Order updated successfully" });
-//   } catch (error) {
-//     res.status(409).json({ message: error.message });
-//   }
-// };
+  if (!status) {
+    return res.status(400).json({ message: "Status is required" });
+  }
+
+  try {
+    const order = await OrderModel.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res
+      .status(200)
+      .json({ message: "Order status updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
