@@ -7,10 +7,10 @@ import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
 import PaymentModel from "../models/paymentModel.js"; // Import PaymentModel
 
-const tmnCode = "51W409Q6";
-const secretKey = "5L95LTE48XCDYRP64PDH2GCEYGA45C95";
-const vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-const returnUrl = "http://10.0.2.2:8000/api/payments/vnpay_return";
+const tmnCode = process.env.TMN_CODE;
+const secretKey = process.env.VNP_SECRET_KEY;
+const vnpUrl = process.env.VNP_URL;
+const returnUrl = process.env.VNP_RETURN_URL;
 
 // Sort object function
 function sortObject(obj) {
@@ -224,7 +224,7 @@ export const vnpayReturn = async (req, res) => {
           payment.status = "completed";
           await payment.save();
 
-          res.redirect("exp://192.168.1.8:8081/--/order-result");
+          res.redirect(`${process.env.DEEP_LINKING}order-result`);
         } catch (error) {
           console.error("Error creating order: ", error);
           res.status(500).json({ message: "Error creating order" });

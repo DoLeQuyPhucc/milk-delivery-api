@@ -42,7 +42,7 @@ const OrderSchema = new mongoose.Schema({
   deliveredAt: { type: String },
   status: {
     type: String,
-    enum: ["Pending", "Out for Delivery", "Delivered", "Cancelled"],
+    enum: ["Pending", "Out for Delivery", "Delivered", "Cancelled", "Failed"],
     default: "Pending",
   },
   circleShipment: {
@@ -52,7 +52,20 @@ const OrderSchema = new mongoose.Schema({
         trackingNumber: { type: String, required: true },
         isDelivered: { type: Boolean, default: false },
         deliveredAt: { type: String },
+        status: {
+          type: String,
+          enum: [
+            "Pending",
+            "Out for Delivery",
+            "Delivered",
+            "Cancelled",
+            "Failed",
+          ],
+          default: "Pending",
+        },
         isPaid: { type: Boolean, default: false },
+        reason: { type: String },
+        newDate: { type: String },
       },
     ],
   },
@@ -74,8 +87,6 @@ OrderSchema.methods.updateStatus = function () {
   } else {
     order.status = "Pending";
   }
-
-  // Note: "On Hold" and "Cancelled" should be handled manually through an admin or shipper action
 };
 
 const OrderModel = mongoose.model("Order", OrderSchema);
