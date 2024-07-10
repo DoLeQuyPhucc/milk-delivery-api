@@ -601,3 +601,136 @@ export const getFilteredOrders = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getOrdersByBrand = async (req, res) => {
+  const { brandId } = req.params;
+
+  try {
+    if (!brandId) {
+      return res.status(400).json({ message: "Brand ID is required" });
+    }
+
+    // Query for orders that have at least one product from the specified brand
+    const orders = await OrderModel.find({
+      "package.products.product.brandID": brandId,
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateDeliveryDateOrder = async (req, res) => {
+  const { id } = req.params;
+  const { newDate } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ message: "No Order with that id" });
+  }
+
+  if (!newDate) {
+    return res.status(400).json({ message: "New date is required" });
+  }
+
+  try {
+    const order = await OrderModel.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    order.deliveredAt = newDate;
+    await order.save();
+
+    res.status(200).json({ message: "Order date updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateOrder = async (req, res) => {
+  const { orderId } = req.params; // Assuming the order ID is passed as a URL parameter
+  const updates = req.body; // Assuming updates are sent in the request body
+
+  try {
+    const order = await OrderModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).send({ message: "Order not found" });
+    }
+
+    Object.keys(updates).forEach((updateKey) => {
+      order[updateKey] = updates[updateKey];
+    });
+
+    if (updates.shouldUpdateStatus) {
+      order.updateStatus();
+    }
+
+    await order.save();
+
+    res.send(order);
+  } catch (error) {
+    res
+      .status(500)
+      .send({ message: "Error updating order", error: error.toString() });
+  }
+};
+
+// Function to update circle shipment details of an order
+export const updateCircleShipmentOrder = async (req, res) => {
+  const { orderId } = req.params;
+  const {
+    trackingNumber,
+    isDelivered,
+    deliveredAt,
+    status,
+    isPaid,
+    reason,
+    newDate,
+  } = req.body;
+
+  try {
+    // Find the order by ID
+    const order = await OrderModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Find the tracking item by its tracking number
+    const shipmentIndex = order.circleShipment.tracking.findIndex(
+      (shipment) => shipment.trackingNumber === trackingNumber
+    );
+
+    if (shipmentIndex === -1) {
+      return res.status(404).json({ message: "Tracking number not found" });
+    }
+
+    // Update the tracking information
+    if (isDelivered !== undefined)
+      order.circleShipment.tracking[shipmentIndex].isDelivered = isDelivered;
+    if (deliveredAt !== undefined)
+      order.circleShipment.tracking[shipmentIndex].deliveredAt = deliveredAt;
+    if (status !== undefined)
+      order.circleShipment.tracking[shipmentIndex].status = status;
+    if (isPaid !== undefined)
+      order.circleShipment.tracking[shipmentIndex].isPaid = isPaid;
+    if (reason !== undefined)
+      order.circleShipment.tracking[shipmentIndex].reason = reason;
+    if (newDate !== undefined)
+      order.circleShipment.tracking[shipmentIndex].newDate = newDate;
+
+    // Update the order status based on the new shipment details
+    order.updateStatus();
+
+    // Save the updated order
+    await order.save();
+
+    res
+      .status(200)
+      .json({ message: "Shipment details updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
