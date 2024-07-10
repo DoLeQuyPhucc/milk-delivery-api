@@ -26,17 +26,41 @@
  * @swagger
  * /api/shippers/getAllShippers:
  *   get:
- *     summary: Get all shipper
+ *     summary: Get all shippers
  *     tags: [Shippers]
  *     responses:
  *       200:
- *         description: List of shipper
+ *         description: List of shippers
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Shippers'
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   shipperName:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   store:
+ *                     type: object
+ *                     properties:
+ *                       storeID:
+ *                         type: string
+ *                 required:
+ *                   - shipperName
+ *                   - phone
+ *                   - store
+ *       404:
+ *         description: No shippers found
+ *       500:
+ *         description: Internal server error
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden access
  */
 
 /**
@@ -50,17 +74,43 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Shippers'
+ *             type: object
+ *             properties:
+ *               shipperName:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               store:
+ *                 type: object
+ *                 properties:
+ *                   storeID:
+ *                     type: string
+ *             required:
+ *               - shipperName
+ *               - phone
+ *               - store
  *     responses:
  *       201:
  *         description: Shippers created successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Shippers'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       409:
  *         description: Shippers already exists
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden access
  */
+
 /**
  * @swagger
  * /api/shippers/{id}:
@@ -79,9 +129,31 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Shippers'
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 shipperName:
+ *                   type: string
+ *                 phone:
+ *                   type: string
+ *                 store:
+ *                   type: object
+ *                   properties:
+ *                     storeID:
+ *                       type: string
+ *               required:
+ *                 - shipperName
+ *                 - phone
+ *                 - store
  *       404:
  *         description: Shippers not found
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden access
+ *       500:
+ *         description: Internal server error
  */
 
 /**
@@ -101,7 +173,14 @@
  *         description: Shippers deleted successfully
  *       404:
  *         description: Shippers not found
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden access
+ *       500:
+ *         description: Internal server error
  */
+
 /**
  * @swagger
  * /api/shippers/{id}:
@@ -119,16 +198,52 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Shippers'
+ *             type: object
+ *             properties:
+ *               shipperName:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               store:
+ *                 type: object
+ *                 properties:
+ *                   storeID:
+ *                     type: string
+ *             required:
+ *               - shipperName
+ *               - phone
+ *               - store
  *     responses:
  *       200:
  *         description: Shippers updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Shippers'
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 shipperName:
+ *                   type: string
+ *                 phone:
+ *                   type: string
+ *                 store:
+ *                   type: object
+ *                   properties:
+ *                     storeID:
+ *                       type: string
+ *               required:
+ *                 - shipperName
+ *                 - phone
+ *                 - store
  *       404:
  *         description: Shippers not found
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden access
+ *       500:
+ *         description: Internal server error
  */
 import mongoose from "mongoose";
 import ShipperModel from "../models/shipperModel.js";

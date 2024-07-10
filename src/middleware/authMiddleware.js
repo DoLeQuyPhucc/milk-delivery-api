@@ -50,3 +50,19 @@ export function isShipper(req, res, next) {
   }
   next();
 }
+
+export function isUserOrManager(req, res, next) {
+  const allowedRoles = ["USER", "MANAGER"];
+  if (!allowedRoles.includes(req.user.role)) {
+    return res.sendStatus(403); 
+  }
+  next(); 
+}
+
+export function isManagerOrAdmin(req, res, next) {
+  const allowedRoles = ["MANAGER", "ADMIN"];
+  if (!allowedRoles.includes(req.user.role)) {
+    return res.sendStatus(403);
+  }
+  next();
+}

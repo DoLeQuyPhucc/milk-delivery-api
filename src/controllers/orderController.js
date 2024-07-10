@@ -94,7 +94,110 @@
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Order'
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   package:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       products:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             product:
+ *                               type: object
+ *                               properties:
+ *                                 _id:
+ *                                   type: string
+ *                                 name:
+ *                                   type: string
+ *                                 productImage:
+ *                                   type: string
+ *                                 description:
+ *                                   type: string
+ *                                 price:
+ *                                   type: number
+ *                                 stockQuantity:
+ *                                   type: number
+ *                                 brandID:
+ *                                   type: string
+ *                             quantity:
+ *                               type: number
+ *                   totalAmount:
+ *                     type: number
+ *                   totalPrice:
+ *                     type: number
+ *                   shippingAddress:
+ *                     type: object
+ *                     properties:
+ *                       fullName:
+ *                         type: string
+ *                       phone:
+ *                         type: string
+ *                       address:
+ *                         type: string
+ *                       city:
+ *                         type: string
+ *                       country:
+ *                         type: string
+ *                   paymentMethod:
+ *                     type: string
+ *                   user:
+ *                     type: string
+ *                   isPaid:
+ *                     type: boolean
+ *                   paidAt:
+ *                     type: string
+ *                   deliveredAt:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                     enum:
+ *                       - Pending
+ *                       - Out for Delivery
+ *                       - Delivered
+ *                       - Cancelled
+ *                       - Failed
+ *                   circleShipment:
+ *                     type: object
+ *                     properties:
+ *                       numberOfShipment:
+ *                         type: number
+ *                       tracking:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             trackingNumber:
+ *                               type: string
+ *                             isDelivered:
+ *                               type: boolean
+ *                             deliveredAt:
+ *                               type: string
+ *                             status:
+ *                               type: string
+ *                               enum:
+ *                                 - Pending
+ *                                 - Out for Delivery
+ *                                 - Delivered
+ *                                 - Cancelled
+ *                                 - Failed
+ *                             isPaid:
+ *                               type: boolean
+ *                             reason:
+ *                               type: string
+ *                             newDate:
+ *                               type: string
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden access
+ *       500:
+ *         description: Internal server error
  */
 
 /**
@@ -115,9 +218,112 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Order'
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 package:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     products:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           product:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                               name:
+ *                                   type: string
+ *                               productImage:
+ *                                   type: string
+ *                               description:
+ *                                   type: string
+ *                               price:
+ *                                   type: number
+ *                               stockQuantity:
+ *                                   type: number
+ *                               brandID:
+ *                                   type: string
+ *                           quantity:
+ *                             type: number
+ *                   totalAmount:
+ *                     type: number
+ *                   totalPrice:
+ *                     type: number
+ *                 shippingAddress:
+ *                   type: object
+ *                   properties:
+ *                     fullName:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                     city:
+ *                       type: string
+ *                     country:
+ *                       type: string
+ *                 paymentMethod:
+ *                   type: string
+ *                 user:
+ *                   type: string
+ *                 isPaid:
+ *                   type: boolean
+ *                 paidAt:
+ *                   type: string
+ *                 deliveredAt:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                   enum:
+ *                     - Pending
+ *                     - Out for Delivery
+ *                     - Delivered
+ *                     - Cancelled
+ *                     - Failed
+ *                 circleShipment:
+ *                   type: object
+ *                   properties:
+ *                     numberOfShipment:
+ *                       type: number
+ *                     tracking:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           trackingNumber:
+ *                             type: string
+ *                           isDelivered:
+ *                             type: boolean
+ *                           deliveredAt:
+ *                             type: string
+ *                           status:
+ *                             type: string
+ *                             enum:
+ *                               - Pending
+ *                               - Out for Delivery
+ *                               - Delivered
+ *                               - Cancelled
+ *                               - Failed
+ *                           isPaid:
+ *                             type: boolean
+ *                           reason:
+ *                             type: string
+ *                           newDate:
+ *                             type: string
  *       404:
  *         description: Order not found
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden access
+ *       500:
+ *         description: Internal server error
  */
 
 /**
@@ -131,10 +337,132 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Order'
+ *             type: object
+ *             properties:
+ *               packageID:
+ *                 type: string
+ *               shippingAddress:
+ *                 type: object
+ *                 properties:
+ *                   fullName:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   address:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   country:
+ *                     type: string
+ *               paymentMethod:
+ *                 type: string
+ *               userID:
+ *                 type: string
+ *               isPaid:
+ *                 type: boolean
+ *               paidAt:
+ *                 type: string
+ *               deliveredAt:
+ *                 type: string
+ *               numberOfShipment:
+ *                 type: number
+ *               status:
+ *                 type: string
+ *                 enum:
+ *                   - Pending
+ *                   - Out for Delivery
+ *                   - Delivered
+ *                   - Cancelled
+ *                   - Failed
  *     responses:
- *       201:
+ *       200:
  *         description: Order created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Order created successfully"
+ *                 newOrder:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     package:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                     shippingAddress:
+ *                       type: object
+ *                       properties:
+ *                         fullName:
+ *                           type: string
+ *                         phone:
+ *                           type: string
+ *                         address:
+ *                           type: string
+ *                         city:
+ *                           type: string
+ *                         country:
+ *                           type: string
+ *                     paymentMethod:
+ *                       type: string
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                     isPaid:
+ *                       type: boolean
+ *                     paidAt:
+ *                       type: string
+ *                     deliveredAt:
+ *                       type: string
+ *                     circleShipment:
+ *                       type: object
+ *                       properties:
+ *                         numberOfShipment:
+ *                           type: number
+ *                         tracking:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               trackingNumber:
+ *                                 type: number
+ *                               isDelivered:
+ *                                 type: boolean
+ *                               deliveredAt:
+ *                                 type: string
+ *                               isPaid:
+ *                                 type: boolean
+ *                     status:
+ *                       type: string
+ *                       enum:
+ *                         - Pending
+ *       404:
+ *         description: Package or user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "'Package not found' or 'User not found'"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 /**
@@ -153,8 +481,74 @@
  *     responses:
  *       200:
  *         description: Order deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Order deleted successfully"
+ *       400:
+ *         description: Invalid order status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid order status"
+ *       401:
+ *         description: Unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized access"
+ *       403:
+ *         description: Forbidden access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Forbidden access"
  *       404:
  *         description: Order not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Order not found"
+ *       409:
+ *         description: Order cannot be deleted due to its current status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Order cannot be deleted due to its current status"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 /**
@@ -291,6 +685,296 @@
  *         description: Order status updated successfully
  *       404:
  *         description: Order not found
+ */
+
+/**
+ * @swagger
+ * /api/orders/updateDeliveryDate/{id}:
+ *   put:
+ *     summary: Update an order's delivery date
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               newDate:
+ *                 type: string
+ *                 required: true
+ *     responses:
+ *       200:
+ *         description: Order delivery date updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Order delivery date updated successfully"
+ *                 order:
+ *                   $ref: '#/components/schemas/Order'
+ *       404:
+ *         description: Order not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Order not found"
+ *       400:
+ *         description: New date is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "New date is required"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
+ */
+
+/**
+ * @swagger
+ * /api/orders/updateOrder/{id}:
+ *   put:
+ *     summary: Update an order
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       description: Order updates
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               package:
+ *                 type: object
+ *                 properties:
+ *                   products:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         product:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             productImage:
+ *                               type: string
+ *                             description:
+ *                               type: string
+ *                             price:
+ *                               type: number
+ *                             stockQuantity:
+ *                               type: number
+ *                             brandID:
+ *                               type: string
+ *                         quantity:
+ *                           type: number
+ *                   totalAmount:
+ *                     type: number
+ *                   totalPrice:
+ *                     type: number
+ *               shippingAddress:
+ *                 type: object
+ *                 properties:
+ *                   fullName:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   address:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   country:
+ *                     type: string
+ *               paymentMethod:
+ *                 type: string
+ *               isPaid:
+ *                 type: boolean
+ *               paidAt:
+ *                 type: string
+ *               deliveredAt:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *                 enum:
+ *                   - Pending
+ *                   - Out for Delivery
+ *                   - Delivered
+ *                   - Cancelled
+ *                   - Failed
+ *               circleShipment:
+ *                 type: object
+ *                 properties:
+ *                   numberOfShipment:
+ *                     type: number
+ *                   tracking:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         trackingNumber:
+ *                           type: string
+ *                         isDelivered:
+ *                           type: boolean
+ *                         deliveredAt:
+ *                           type: string
+ *                         status:
+ *                           type: string
+ *                           enum:
+ *                             - Pending
+ *                             - Out for Delivery
+ *                             - Delivered
+ *                             - Cancelled
+ *                             - Failed
+ *                         isPaid:
+ *                           type: boolean
+ *                         reason:
+ *                           type: string
+ *                         newDate:
+ *                           type: string
+ *                     minItems: 1
+ *                     maxItems: 9
+ *               shouldUpdateStatus:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Order updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Order'
+ *       404:
+ *         description: Order not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Order not found"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Error updating order"
+ *                 error:
+ *                   type: string
+ *                   example: "Error message"
+ */
+
+/**
+ * @swagger
+ * /api/orders/updateCircleShipment/{id}:
+ *   put:
+ *     summary: Update circle shipment details of an order
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       description: Circle shipment details to update
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               trackingNumber:
+ *                 type: string
+ *                 required: true
+ *               isDelivered:
+ *                 type: boolean
+ *               deliveredAt:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *                 enum:
+ *                   - Pending
+ *                   - Out for Delivery
+ *                   - Delivered
+ *                   - Cancelled
+ *                   - Failed
+ *               isPaid:
+ *                 type: boolean
+ *               reason:
+ *                 type: string
+ *               newDate:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Shipment details updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Shipment details updated successfully"
+ *                 order:
+ *                   $ref: '#/components/schemas/Order'
+ *       404:
+ *         description: Order or tracking number not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "'Order not found' or 'Tracking number not found'"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
+ *                 error:
+ *                   type: string
+ *                   example: "Error message"
  */
 
 import mongoose from "mongoose";
@@ -588,3 +1272,117 @@ export const getFilteredOrders = async (req, res) => {
   }
 };
 
+export const getOrdersByBrand = async (req, res) => {
+  const { brandId } = req.params;
+
+  try{
+    if (!brandId) {
+      return res.status(400).json({ message: 'Brand ID is required' });
+    }
+
+    // Query for orders that have at least one product from the specified brand
+    const orders = await OrderModel.find({
+      'package.products.product.brandID': brandId
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateDeliveryDateOrder = async (req, res) => {
+  const { id } = req.params;
+  const { newDate } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ message: "No Order with that id" });
+  }
+
+  if (!newDate) {
+    return res.status(400).json({ message: "New date is required" });
+  }
+
+  try {
+    const order = await OrderModel.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    order.deliveredAt = newDate;
+    await order.save();
+
+    res.status(200).json({ message: "Order date updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export const updateOrder = async (req, res) => {
+  const { orderId } = req.params; // Assuming the order ID is passed as a URL parameter
+  const updates = req.body; // Assuming updates are sent in the request body
+
+  try {
+    const order = await OrderModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).send({ message: 'Order not found' });
+    }
+
+    Object.keys(updates).forEach((updateKey) => {
+      order[updateKey] = updates[updateKey];
+    });
+
+    if (updates.shouldUpdateStatus) {
+      order.updateStatus();
+    }
+
+    await order.save(); 
+
+    res.send(order); 
+  } catch (error) {
+    res.status(500).send({ message: 'Error updating order', error: error.toString() });
+  }
+};
+
+// Function to update circle shipment details of an order
+export const updateCircleShipmentOrder = async (req, res) => {
+  const { orderId } = req.params;
+  const { trackingNumber, isDelivered, deliveredAt, status, isPaid, reason, newDate } = req.body;
+
+  try {
+    // Find the order by ID
+    const order = await OrderModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Find the tracking item by its tracking number
+    const shipmentIndex = order.circleShipment.tracking.findIndex(
+      (shipment) => shipment.trackingNumber === trackingNumber
+    );
+
+    if (shipmentIndex === -1) {
+      return res.status(404).json({ message: "Tracking number not found" });
+    }
+
+    // Update the tracking information
+    if (isDelivered !== undefined) order.circleShipment.tracking[shipmentIndex].isDelivered = isDelivered;
+    if (deliveredAt !== undefined) order.circleShipment.tracking[shipmentIndex].deliveredAt = deliveredAt;
+    if (status !== undefined) order.circleShipment.tracking[shipmentIndex].status = status;
+    if (isPaid !== undefined) order.circleShipment.tracking[shipmentIndex].isPaid = isPaid;
+    if (reason !== undefined) order.circleShipment.tracking[shipmentIndex].reason = reason;
+    if (newDate !== undefined) order.circleShipment.tracking[shipmentIndex].newDate = newDate;
+
+    // Update the order status based on the new shipment details
+    order.updateStatus();
+
+    // Save the updated order
+    await order.save();
+
+    res.status(200).json({ message: "Shipment details updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
