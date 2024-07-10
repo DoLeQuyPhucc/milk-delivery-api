@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cors from "cors";
+import schedulePaymentCleanup from "./src/utils/paymentCleanup.js";
 
 import appRoutes from "./src/routes/appRoutes.js";
 
@@ -37,8 +38,9 @@ mongoose
   })
   .then(() => {
     console.log("Database connected successfully.");
+    schedulePaymentCleanup();
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      console.log(`Server is running on port http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
