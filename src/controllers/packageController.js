@@ -186,6 +186,208 @@
 
 /**
  * @swagger
+ * /api/packages/getPackages/filtered:
+ *   get:
+ *     summary: Get paginated packages with optional filters
+ *     tags: [Package]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: brandID
+ *         schema:
+ *           type: string
+ *         description: Filter by brand ID
+ *       - in: query
+ *         name: productName
+ *         schema:
+ *           type: string
+ *         description: Filter by product name
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Minimum price
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Maximum price
+ *     responses:
+ *       200:
+ *         description: A list of packages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 packages:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Package'
+ *                 count:
+ *                   type: integer
+ *                   description: Total number of packages
+ *                 page:
+ *                   type: integer
+ *                   description: Current page number
+ *                 size:
+ *                   type: integer
+ *                   description: Number of items per page
+ *             example:
+ *               packages:
+ *                 - id: 1
+ *                   products:
+ *                     - product: { id: 1, name: "Product 1" }
+ *                       quantity: 2
+ *                 - id: 2
+ *                   products:
+ *                     - product: { id: 2, name: "Product 2" }
+ *                       quantity: 3
+ *               count: 10
+ *               page: 1
+ *               size: 10
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               error: "Invalid request parameters"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               error: "Unauthorized access"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               error: "Internal Server Error"
+ */
+
+/**
+ * @swagger
+ * /api/packages/getPackages/paged:
+ *   get:
+ *     summary: Get paginated packages
+ *     tags: [Package]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: A list of packages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 packages:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Package'
+ *                 count:
+ *                   type: integer
+ *                   description: Total number of packages
+ *                 page:
+ *                   type: integer
+ *                   description: Current page number
+ *                 size:
+ *                   type: integer
+ *                   description: Number of items per page
+ *             example:
+ *               packages:
+ *                 - id: 1
+ *                   products:
+ *                     - product: { id: 1, name: "Product 1" }
+ *                       quantity: 2
+ *                 - id: 2
+ *                   products:
+ *                     - product: { id: 2, name: "Product 2" }
+ *                       quantity: 3
+ *               count: 10
+ *               page: 1
+ *               size: 10
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               error: "Invalid request parameters"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               error: "Unauthorized access"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               error: "Internal Server Error"
+ */
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     Product:
@@ -377,3 +579,64 @@ export const deletePackage = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getFilteredPackages = async (req, res) => {
+  const { page = 1, size = 10 } = req.query;
+  const { brandID, productName, minPrice, maxPrice } = req.query;
+
+  const filter = {};
+
+  if (brandID) {
+    filter["products.product.brandID"] = brandID;
+  }
+
+  if (productName) {
+    filter["products.product.name"] = { $regex: productName, $options: "i" };
+  }
+
+  if (minPrice && maxPrice) {
+    filter.totalPrice = { $gte: minPrice, $lte: maxPrice };
+  }
+
+  try {
+    const packages = await PackageModel.find(filter)
+      .skip((page - 1) * size)
+      .limit(size)
+      .exec();
+
+    const count = await PackageModel.countDocuments(filter).exec();
+
+    res.json({
+      packages,
+      count,
+      page,
+      size,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getPagedPackages = async (req, res) => {
+  const { page = 1, size = 10 } = req.query;
+
+  try {
+    const packages = await PackageModel.find()
+      .skip((page - 1) * size)
+      .limit(size)
+      .exec();
+
+    const count = await PackageModel.countDocuments().exec();
+
+    res.json({
+      packages,
+      count,
+      page,
+      size,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}

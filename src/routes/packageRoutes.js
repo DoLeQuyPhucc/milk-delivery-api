@@ -5,8 +5,10 @@ import {
   createPackage,
   updatePackage,
   deletePackage,
+  getFilteredPackages,
+  getPagedPackages
 } from "../controllers/packageController.js";
-import { authenticateToken } from "../middleware/authMiddleware.js";
+import { authenticateToken, isManager, isUserOrManager } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -14,15 +16,21 @@ const router = express.Router();
 router.get("/getAllPackages", authenticateToken, getAllPackages);
 
 // GET /api/packages/:id
-router.get("/:id", authenticateToken, getPackageById);
+router.get("/:id", authenticateToken, isUserOrManager, getPackageById);
 
 // POST /api/packages/createPackage
-router.post("/", authenticateToken, createPackage);
+router.post("/", authenticateToken, isManager, createPackage);
 
 // PUT /api/packages/:id
-router.put("/:id", authenticateToken, updatePackage);
+router.put("/:id", authenticateToken, isManager, updatePackage);
 
 // DELETE /api/packages/:id
-router.delete("/:id", authenticateToken, deletePackage);
+router.delete("/:id", authenticateToken, isManager, deletePackage);
+
+// GET /api/packages/getPackages/filtered
+router.get("/getPackages/filtered", authenticateToken, isUserOrManager, getFilteredPackages);
+
+// GET /api/packages/getPackages/paged
+router.get("/getPackages/paged", authenticateToken, isUserOrManager, getPagedPackages);
 
 export default router;
