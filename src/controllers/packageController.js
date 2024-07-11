@@ -388,6 +388,63 @@
 
 /**
  * @swagger
+ * /api/packages/getPackagesByBrandName/{brandName}:
+ *   get:
+ *     summary: Get packages by brand name
+ *     tags: [Package]
+ *     parameters:
+ *       - in: path
+ *         name: brandName
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Brand name
+ *     responses:
+ *       200:
+ *         description: List of packages for the given brand name
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Package'
+ *             example:
+ *               - id: 1
+ *                 products:
+ *                   - product: { id: 1, name: "Product 1", brandID: 1 }
+ *                     quantity: 2
+ *               - id: 2
+ *                 products:
+ *                   - product: { id: 2, name: "Product 2", brandID: 1 }
+ *                     quantity: 3
+ *       404:
+ *         description: Brand not found or no packages found for the given brand name
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               message: "Brand not found"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               message: "Error fetching packages by brand name"
+ */
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     Product:
@@ -455,6 +512,7 @@
  */
 
 import PackageModel from "../models/packageModel.js";
+import BrandModel from "../models/brandModel.js";
 import mongoose from "mongoose";
 
 export const createPackage = async (req, res) => {
@@ -638,5 +696,30 @@ export const getPagedPackages = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export const getPackagesByBrandName = async (req, res) => {
+  const { brandName } = req.query;
+
+  try {
+    const brand = await BrandModel.findOne({ name: brandName });
+    if (!brand) {
+      return res.status(404).send({ message: 'Brand not found' });
+    }
+
+    // use the brandID to find packages
+    const packages = await PackageModel.find({
+      'products.product.brandID': brand._id
+    });
+
+    if (packages.length === 0) {
+      return res.status(404).send({ message: 'No packages found for the given brand name' });
+    }
+
+    res.json(packages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Error fetching packages by brand nam" });
   }
 }

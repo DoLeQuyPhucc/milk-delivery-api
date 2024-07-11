@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
     role: String,
     password: String,
     address: String,
+    shipper: { type: mongoose.Schema.Types.ObjectId, ref: "shippers" }
   },
   { versionKey: false }
 );

@@ -6,7 +6,8 @@ import {
   updatePackage,
   deletePackage,
   getFilteredPackages,
-  getPagedPackages
+  getPagedPackages,
+  getPackagesByBrandName
 } from "../controllers/packageController.js";
 import { authenticateToken, isManager, isUserOrManager } from "../middleware/authMiddleware.js";
 
@@ -32,5 +33,8 @@ router.get("/getPackages/filtered", authenticateToken, isUserOrManager, getFilte
 
 // GET /api/packages/getPackages/paged
 router.get("/getPackages/paged", authenticateToken, isUserOrManager, getPagedPackages);
+
+// GET /api/packages/getPackagesByBrandName/:brandName
+router.get("/getPackagesByBrandName/:brandName", authenticateToken, isUserOrManager, getPackagesByBrandName);
 
 export default router;

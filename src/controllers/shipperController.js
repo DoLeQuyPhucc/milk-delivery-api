@@ -245,8 +245,72 @@
  *       500:
  *         description: Internal server error
  */
+
+/**
+ * @swagger
+ * /api/shippers/assignStoreToShipper/{shipperId}/{storeId}:
+ *   post:
+ *     summary: Assign a store to a shipper
+ *     tags: [Shippers]
+ *     parameters:
+ *       - in: path
+ *         name: shipperId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The shipper ID
+ *       - in: path
+ *         name: storeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The store ID to assign
+ *     responses:
+ *       200:
+ *         description: Store assigned to shipper successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Store assigned to shipper successfully
+ *       400:
+ *         description: Invalid ID supplied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid ID supplied
+ *       404:
+ *         description: Shipper or store not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Shipper not found
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Error message
+ */
+
 import mongoose from "mongoose";
 import ShipperModel from "../models/shipperModel.js";
+import StoreModel from "../models/storeModel.js";
 
 export const getAllShippers = async (req, res) => {
   try {
@@ -331,4 +395,36 @@ export const updateShipper = async (req, res) => {
     .catch((error) => {
       res.status(500).json({ message: error.message });
     });
+};
+
+// Assign store to shipper
+export const assignStoreToShipper = async (req, res) => {
+  const { shipperId, storeId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(shipperId) || !mongoose.Types.ObjectId.isValid(storeId)) {
+    return res.status(400).json({ message: "Invalid ID supplied" });
+  }
+
+  try {
+    const shipper = await ShipperModel.findById(shipperId);
+    if (!shipper) {
+      return res.status(404).json({ message: "Shipper not found" });
+    }
+
+    const store = await StoreModel.findById(storeId);
+    if (!store) {
+      return res.status(404).json({ message: "Store not found" });
+    }
+
+    shipper.store = store._id;
+    await shipper.save();
+
+    // Optionally, verify the update by querying the shipper again
+    const updatedShipper = await ShipperModel.findById(shipperId).populate('store');
+    console.log('Updated Shipper:', updatedShipper);
+
+    res.status(200).json({ message: "Store assigned to shipper successfully", shipper: updatedShipper});
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
