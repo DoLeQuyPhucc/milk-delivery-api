@@ -2,10 +2,14 @@ import crypto from "crypto";
 import querystring from "qs";
 import moment from "moment-timezone";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+
 import OrderModel from "../models/orderModel.js";
 import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
 import PaymentModel from "../models/paymentModel.js"; // Import PaymentModel
+
+dotenv.config();
 
 const tmnCode = process.env.TMN_CODE;
 const secretKey = process.env.VNP_SECRET_KEY;
@@ -84,8 +88,8 @@ export const createPayment = async (req, res) => {
       orderData: req.body,
       status: "pending",
     });
-    await payment.save();
 
+    await payment.save();
     res.json({ vnpUrl: paymentUrl });
   } catch (error) {
     console.error("Error generating payment URL: ", error);
@@ -224,7 +228,7 @@ export const vnpayReturn = async (req, res) => {
           payment.status = "completed";
           await payment.save();
 
-          res.redirect(`${process.env.DEEP_LINKING}order-result`);
+          res.redirect(`exp://192.168.1.8:8081/--/order-result`);
         } catch (error) {
           console.error("Error creating order: ", error);
           res.status(500).json({ message: "Error creating order" });

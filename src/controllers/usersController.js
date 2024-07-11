@@ -118,7 +118,6 @@
  *                   type: string
  */
 
-
 /**
  * @swagger
  * /api/users/getUserById/{id}:
@@ -473,15 +472,13 @@
  *         description: Internal server error.
  */
 
-
 import mongoose from "mongoose";
 import UserModel from "../models/userModel.js";
-
 
 export const getAllUsers = async (req, res) => {
   try {
     let users = await UserModel.find();
-    const roleOrder = ['ADMIN', 'MANAGER','CUSTOMER'];
+    const roleOrder = ["ADMIN", "MANAGER", "CUSTOMER"];
     users.sort((a, b) => {
       return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
     });
@@ -544,19 +541,19 @@ export const getUserById = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { _id, ...updateData } = req.body; 
+  const { _id, ...updateData } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(404).json({ message: "No user with that id" });
   }
 
   try {
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      id,
-      updateData, 
-      { new: true }
-    );
-    res.status(200).json({ message: "User updated successfully", user: updatedUser });
+    const updatedUser = await UserModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+    res
+      .status(200)
+      .json({ message: "User updated successfully", user: updatedUser });
   } catch (err) {
     res.status(409).json({ message: err.message });
   }
@@ -598,8 +595,6 @@ export const editUser = async (req, res) => {
   try {
     const user = await UserModel.findById(userId);
 
-    console.log(user);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -620,7 +615,7 @@ export const editUser = async (req, res) => {
 };
 
 export const getUserPaged = async (req, res) => {
-  const { page = 1, size = 10 } = req.query; 
+  const { page = 1, size = 10 } = req.query;
   const limit = parseInt(size, 10);
   const skip = (parseInt(page, 10) - 1) * limit;
 
@@ -632,7 +627,7 @@ export const getUserPaged = async (req, res) => {
       users,
       currentPage: parseInt(page, 10),
       totalPages: Math.ceil(totalUsers / limit),
-      totalUsers
+      totalUsers,
     });
   } catch (error) {
     console.error("Error fetching paginated users:", error);
@@ -651,7 +646,7 @@ export const getUserByEmail = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-}
+};
 
 export const getUserByRole = async (req, res) => {
   const { role } = req.query;
@@ -664,17 +659,25 @@ export const getUserByRole = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-}
+};
 
 export const getUsersFiltered = async (req, res) => {
   try {
-    const { page = 1, size = 10, firstName, lastName, email, phoneNumber, role } = req.query;
+    const {
+      page = 1,
+      size = 10,
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      role,
+    } = req.query;
 
     let query = {};
-    if (firstName) query.firstName = { $regex: firstName, $options: 'i' };
-    if (lastName) query.lastName = { $regex: lastName, $options: 'i' };
-    if (email) query.email = { $regex: email, $options: 'i' };
-    if (phoneNumber) query.phoneNumber = { $regex: phoneNumber, $options: 'i' };
+    if (firstName) query.firstName = { $regex: firstName, $options: "i" };
+    if (lastName) query.lastName = { $regex: lastName, $options: "i" };
+    if (email) query.email = { $regex: email, $options: "i" };
+    if (phoneNumber) query.phoneNumber = { $regex: phoneNumber, $options: "i" };
     if (role) query.role = role;
 
     const skip = (page - 1) * size;

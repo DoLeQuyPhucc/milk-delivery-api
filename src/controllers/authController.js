@@ -244,7 +244,7 @@ const signIn = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.SECRET_KEY,
-      { expiresIn: "5m" }
+      { expiresIn: "1d" }
     );
 
     const refreshToken = jwt.sign(
@@ -275,7 +275,7 @@ const refreshToken = (req, res) => {
     const newAccessToken = jwt.sign(
       { id: decoded.id, role: decoded.role },
       process.env.SECRET_KEY,
-      { expiresIn: "5m" }
+      { expiresIn: "1d" }
     );
 
     const newRefreshToken = jwt.sign(
@@ -333,7 +333,6 @@ const getMe = async (req, res) => {
 
   try {
     const user = await UserModel.findById(id);
-    console.log(id);
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
@@ -395,15 +394,11 @@ const googleSignup = async (req, res) => {
 const googleLogin = async (req, res) => {
   const { token } = req.body;
   try {
-    console.log("Received token:", token);
-
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    console.log("Token payload:", payload);
-
     const { sub, email, name, picture, given_name, family_name } = payload;
 
     let user = await User.findOne({ googleId: sub });

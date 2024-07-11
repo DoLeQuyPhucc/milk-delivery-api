@@ -12,10 +12,10 @@ const OrderSchema = new mongoose.Schema({
         product: {
           _id: { type: mongoose.Schema.Types.ObjectId, required: true },
           name: { type: String, required: true },
-          productImage: { type: String, required: true },
-          description: { type: String, required: true },
+          productImage: { type: String },
+          description: { type: String },
           price: { type: Number, required: true },
-          stockQuantity: { type: Number, required: true },
+          stockQuantity: { type: Number },
           brandID: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Brand",
