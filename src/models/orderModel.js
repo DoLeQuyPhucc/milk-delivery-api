@@ -40,6 +40,7 @@ const OrderSchema = new mongoose.Schema({
   isPaid: { type: Boolean, default: false },
   paidAt: { type: String },
   deliveredAt: { type: String },
+  shipper: { type: mongoose.Schema.Types.ObjectId, ref: "shippers"},
   status: {
     type: String,
     enum: ["Pending", "Out for Delivery", "Delivered", "Cancelled", "Failed"],

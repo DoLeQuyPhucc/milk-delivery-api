@@ -11,7 +11,8 @@ import {
   getOrdersPaged,
   updateDeliveryDateOrder,
   updateOrder,
-  updateCircleShipmentOrder
+  updateCircleShipmentOrder,
+  assignShipperToOrder
 } from "../controllers/orderController.js";
 
 import { authenticateToken, isUser, isManager, isUserOrManager } from "../middleware/authMiddleware.js";
@@ -30,5 +31,6 @@ router.get("/getOrders/paged", authenticateToken, getOrdersPaged);
 router.put("/updateDeliveryDate/:id", authenticateToken, isUserOrManager, updateDeliveryDateOrder);
 router.put("/updateOrder/:id", authenticateToken, isUserOrManager, updateOrder);
 router.put("/updateCircleShipment/:id", authenticateToken, isUserOrManager, updateCircleShipmentOrder);
+router.post("/assignShipper", authenticateToken, isManager, assignShipperToOrder);
 
 export default router;
