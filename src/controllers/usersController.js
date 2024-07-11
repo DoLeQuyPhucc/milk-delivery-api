@@ -14,6 +14,7 @@
  *       required:
  *         - firstName
  *         - lastName
+ *         - userName
  *         - email
  *         - password
  *       properties:
@@ -23,6 +24,9 @@
  *         lastName:
  *           type: string
  *           description: The user's last name.
+ *         userName:
+ *           type: string
+ *           description: The user's username.
  *         avartaImage:
  *           type: string
  *           description: The user's avatar image.
@@ -78,10 +82,9 @@
  *                 message:
  *                   type: string
  */
-
 /**
  * @swagger
- * /api/users/:
+ * /api/users:
  *   post:
  *     summary: Create a new user
  *     tags: [Users]
@@ -90,14 +93,44 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - userName
+ *               - email
+ *               - password
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               userName:
+ *                 type: string
+ *               avartaImage:
+ *                 type: string
+ *                 description: URL to the avatar image
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phoneNumber:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               address:
+ *                 type: string
  *     responses:
  *       201:
- *         description: The created user
+ *         description: User created successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       400:
  *         description: Missing required fields
  *         content:
@@ -108,7 +141,7 @@
  *                 message:
  *                   type: string
  *       409:
- *         description: Conflict
+ *         description: Conflict - Error message from server
  *         content:
  *           application/json:
  *             schema:
@@ -117,6 +150,7 @@
  *                 message:
  *                   type: string
  */
+
 
 /**
  * @swagger
@@ -308,6 +342,8 @@
  *               firstName:
  *                 type: string
  *               lastName:
+ *                 type: string
+ *               userName:
  *                 type: string
  *               email:
  *                 type: string
@@ -555,7 +591,7 @@ import ShipperModel from "../models/shipperModel.js";
 export const getAllUsers = async (req, res) => {
   try {
     let users = await UserModel.find();
-    const roleOrder = ["ADMIN", "MANAGER", "CUSTOMER"];
+    const roleOrder = ["ADMIN", "MANAGER", "CUSTOMER", "SHIPPER"];
     users.sort((a, b) => {
       return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
     });
@@ -570,6 +606,7 @@ export const createUser = async (req, res) => {
   const {
     firstName,
     lastName,
+    userName,
     avartaImage,
     email,
     phoneNumber,
@@ -578,13 +615,14 @@ export const createUser = async (req, res) => {
     address,
   } = req.body;
 
-  if (!firstName || !lastName || !email || !password) {
+  if (!firstName || !lastName || !userName || !email || !password) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
   const newUser = new UserModel({
     firstName,
     lastName,
+    userName,
     avartaImage,
     email,
     phoneNumber,
@@ -620,6 +658,7 @@ export const createShipper = async (req, res) => {
   const {
     firstName,
     lastName,
+    userName,
     avartaImage,
     email,
     phoneNumber,
@@ -628,13 +667,14 @@ export const createShipper = async (req, res) => {
     shipperName,
   } = req.body;
 
-  if (!firstName || !lastName || !email || !password || !shipperName) {
+  if (!firstName || !lastName || !userName ||!email || !password || !shipperName) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
-    // Check if user already exists
-    const existingUser = await UserModel.findOne({ email });
+    const existingUser = await UserModel.findOne({
+      $or: [{ userName }, { email: req.body.email }]
+    });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -643,6 +683,7 @@ export const createShipper = async (req, res) => {
     const user = new UserModel({
       firstName,
       lastName,
+      userName,
       avartaImage,
       email,
       phoneNumber,
@@ -839,3 +880,4 @@ export const getUsersFiltered = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
