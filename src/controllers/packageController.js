@@ -511,6 +511,63 @@
  *         totalPrice: 125000
  */
 
+/**
+ * @swagger
+ * /api/packages/getPackagesByBrandId/{brandID}:
+ *   get:
+ *     summary: Get packages by brand ID
+ *     tags: [Package]
+ *     parameters:
+ *       - in: path
+ *         name: brandID
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Brand ID
+ *     responses:
+ *       200:
+ *         description: List of packages for the given brand ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Package'
+ *             example:
+ *               - id: 1
+ *                 products:
+ *                   - product: { id: 1, name: "Product 1", brandID: "brand_id_1" }
+ *                     quantity: 2
+ *               - id: 2
+ *                 products:
+ *                   - product: { id: 2, name: "Product 2", brandID: "brand_id_1" }
+ *                     quantity: 3
+ *       404:
+ *         description: Brand not found or no packages found for the given brand ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               message: "Brand not found"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *             example:
+ *               message: "Error fetching packages by brand ID"
+ */
+
 import PackageModel from "../models/packageModel.js";
 import BrandModel from "../models/brandModel.js";
 import mongoose from "mongoose";
@@ -571,11 +628,11 @@ export const getPackageById = async (req, res) => {
 
   try {
     const packages = await PackageModel.findById(id).populate({
-      path: 'products.product',
+      path: "products.product",
       populate: {
-        path: 'brandID',
-        model: 'Brand'
-      }
+        path: "brandID",
+        model: "Brand",
+      },
     });
     res.status(200).json(packages);
   } catch (err) {
@@ -697,7 +754,7 @@ export const getPagedPackages = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 export const getPackagesByBrandName = async (req, res) => {
   const { brandName } = req.query;
@@ -705,16 +762,18 @@ export const getPackagesByBrandName = async (req, res) => {
   try {
     const brand = await BrandModel.findOne({ name: brandName });
     if (!brand) {
-      return res.status(404).send({ message: 'Brand not found' });
+      return res.status(404).send({ message: "Brand not found" });
     }
 
     // use the brandID to find packages
     const packages = await PackageModel.find({
-      'products.product.brandID': brand._id
+      "products.product.brandID": brand._id,
     });
 
     if (packages.length === 0) {
-      return res.status(404).send({ message: 'No packages found for the given brand name' });
+      return res
+        .status(404)
+        .send({ message: "No packages found for the given brand name" });
     }
 
     res.json(packages);
@@ -722,4 +781,34 @@ export const getPackagesByBrandName = async (req, res) => {
     console.error(error);
     res.status(500).send({ message: "Error fetching packages by brand nam" });
   }
-}
+};
+
+export const getPackagesByBrandId = async (req, res) => {
+  const { brandID } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(brandID)) {
+    return res.status(404).json({ message: "Invalid brand ID" });
+  }
+
+  try {
+    const brand = await BrandModel.findById(brandID);
+    if (!brand) {
+      return res.status(404).json({ message: "Brand not found" });
+    }
+
+    const packages = await PackageModel.find({
+      "products.product.brandID": brandID,
+    });
+
+    if (packages.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No packages found for the given brand ID" });
+    }
+
+    res.status(200).json(packages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching packages by brand ID" });
+  }
+};
