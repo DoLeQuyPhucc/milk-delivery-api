@@ -416,8 +416,8 @@ export const assignStoreToShipper = async (req, res) => {
       return res.status(404).json({ message: "Store not found" });
     }
 
-    // Assign the store with the storeID
-    shipper.store = { storeID: store._id };
+    // Add the new store to the stores array
+    shipper.store.push({ storeID: store._id });
     await shipper.save();
 
     // Optionally, verify the update by querying the shipper again
