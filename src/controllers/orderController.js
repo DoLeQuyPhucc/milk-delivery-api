@@ -293,12 +293,88 @@
  *         description: Order not found
  */
 
+/**
+ * @swagger
+ * /api/orders/assignShipper:
+ *   post:
+ *     summary: Assign a shipper to an order
+ *     tags: [Orders]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 description: The ID of the order
+ *               shipperId:
+ *                 type: string
+ *                 description: The ID of the shipper
+ *             example:
+ *               orderId: "60c72b1f9b1d4c3a6cddf80b"
+ *               shipperId: "60c72b2f9b1d4c3a6cddf80c"
+ *     responses:
+ *       '200':
+ *         description: Shipper assigned to order successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Shipper assigned to order successfully"
+ *                 order:
+ *                   $ref: '#/components/schemas/Order'
+ *       '400':
+ *         description: Invalid order or shipper ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               invalidId:
+ *                 value: { "message": "Invalid order ID or shipper ID provided." }
+ *       '404':
+ *         description: Order or shipper not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               notFound:
+ *                 value: { "message": "Order or shipper not found." }
+ *       '500':
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               serverError:
+ *                 value: { "message": "An unexpected error occurred on the server." }
+ */
+
+
+
 import mongoose from "mongoose";
 import { validationResult } from "express-validator";
 import OrderModel from "../models/orderModel.js";
 import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
 import BrandModel from "../models/brandModel.js";
+import ShipperModel from "../models/shipperModel.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -732,5 +808,40 @@ export const updateCircleShipmentOrder = async (req, res) => {
       .json({ message: "Shipment details updated successfully", order });
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
+export const assignShipperToOrder = async (req, res) => {
+  const { orderId, shipperId } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(shipperId)) {
+    return res.status(400).json({ message: "Invalid order or shipper ID" });
+  }
+
+  try {
+    const order = await OrderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const shipper = await ShipperModel.findById(shipperId);
+    if (!shipper) {
+      return res.status(404).json({ message: "Shipper not found" });
+    }
+
+    if(order.shipper) {
+      return res.status(400).json({ message: "Order already has a shipper assigned" });
+    }
+
+    if(order.status !== "Pending" || order.isPaid === false) {
+      return res.status(400).json({ message: "Order must be pending and paid to assign a shipper" });
+    }
+
+    order.shipper = shipperId;
+    await order.save();
+
+    res.status(200).json({ message: "Shipper assigned to order successfully", order });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
