@@ -416,14 +416,15 @@ export const assignStoreToShipper = async (req, res) => {
       return res.status(404).json({ message: "Store not found" });
     }
 
-    shipper.store = store._id;
+    // Assign the store with the storeID
+    shipper.store = { storeID: store._id };
     await shipper.save();
 
     // Optionally, verify the update by querying the shipper again
-    const updatedShipper = await ShipperModel.findById(shipperId).populate('store');
+    const updatedShipper = await ShipperModel.findById(shipperId).populate('user');
     console.log('Updated Shipper:', updatedShipper);
 
-    res.status(200).json({ message: "Store assigned to shipper successfully", shipper: updatedShipper});
+    res.status(200).json({ message: "Store assigned to shipper successfully", shipper: updatedShipper });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

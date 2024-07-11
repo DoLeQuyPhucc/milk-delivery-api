@@ -15,10 +15,7 @@ export const shipperSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'users'
     },
-    store: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'store'
-    }
+    store: storeSchema // This should be an embedded document
   },
   {
     versionKey: false,
