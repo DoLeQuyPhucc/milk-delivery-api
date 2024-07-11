@@ -10,7 +10,8 @@ import {
   getUserByEmail,
   getUserByRole,
   getUserPaged,
-  getUsersFiltered
+  getUsersFiltered,
+  createShipper
 } from "../controllers/usersController.js";
 import { authenticateToken, isAdmin, isManagerOrAdmin, isUserOrAdmin } from "../middleware/authMiddleware.js";
 
@@ -48,5 +49,8 @@ router.get("/paged", authenticateToken, isManagerOrAdmin, getUserPaged);
 
 // GET /api/users/filtered
 router.get("/filtered", authenticateToken, isManagerOrAdmin, getUsersFiltered);
+
+// POST /api/users/createShipper
+router.post("/createShipper", authenticateToken, isManagerOrAdmin, createShipper);
 
 export default router;

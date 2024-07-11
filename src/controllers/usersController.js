@@ -472,8 +472,85 @@
  *         description: Internal server error.
  */
 
+/**
+ * @swagger
+ * /api/users/createShipper:
+ *   post:
+ *     summary: Create a new shipper
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - password
+ *               - shipperName
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               avartaImage:
+ *                 type: string
+ *                 description: URL to the avatar image
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phoneNumber:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               shipperName:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Shipper created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 shipper:
+ *                   $ref: '#/components/schemas/Shipper'
+ *                 token:
+ *                   type: string
+ *       400:
+ *         description: Missing required fields or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Error creating shipper
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 error:
+ *                   type: string
+ */
+
+
 import mongoose from "mongoose";
 import UserModel from "../models/userModel.js";
+import ShipperModel from "../models/shipperModel.js";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -539,6 +616,62 @@ export const getUserById = async (req, res) => {
   }
 };
 
+export const createShipper = async (req, res) => {
+  const {
+    firstName,
+    lastName,
+    avartaImage,
+    email,
+    phoneNumber,
+    password,
+    address,
+    shipperName,
+  } = req.body;
+
+  if (!firstName || !lastName || !email || !password || !shipperName) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Create new user with role SHIPPER
+    const user = new UserModel({
+      firstName,
+      lastName,
+      avartaImage,
+      email,
+      phoneNumber,
+      role: "SHIPPER",
+      password,
+      address,
+    });
+
+    await user.save();
+
+    // Create new shipper
+    const shipper = new ShipperModel({
+      shipperName,
+      phone: phoneNumber,
+      user: user._id,
+    });
+
+    await shipper.save();
+
+    // Update user with shipper reference
+    user.shipper = shipper._id;
+    await user.save();
+
+    res.status(201).json({ message: "Shipper created successfully", user, shipper });
+  } catch (err) {
+    res.status(500).json({ message: "Error creating shipper", error: err.message });
+  }
+};
+
 export const updateUser = async (req, res) => {
   const { id } = req.params;
   const { _id, ...updateData } = req.body;
@@ -559,6 +692,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
+
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -567,8 +701,18 @@ export const deleteUser = async (req, res) => {
   }
 
   try {
+    const user = await UserModel.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role === "SHIPPER") {
+      await ShipperModel.findByIdAndDelete(user.shipper);
+    }
+
     await UserModel.findByIdAndDelete(id);
-    res.status(200).json({ message: "User deleted successfully" });
+    res.status(200).json({ message: "User and associated shipper deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
