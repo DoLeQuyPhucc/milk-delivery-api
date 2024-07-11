@@ -267,13 +267,9 @@ const client = new OAuth2Client(
  *                  example: 'Server error'
  */
 
-
-
-
 // Sign In function
 // authController.js
 import UserModel from "../models/userModel.js";
-
 
 // Sign In function
 const signIn = async (req, res) => {
@@ -340,15 +336,24 @@ const refreshToken = (req, res) => {
 
 // Sign Up function
 const signUp = async (req, res) => {
-  const { firstName, lastName, userName, email, password, phoneNumber, address } = req.body;
+  const { firstName, lastName, userName, email, password, phoneNumber } =
+    req.body;
 
   try {
     // Check if user already exists by userName or email
     const existingUser = await UserModel.findOne({
-      $or: [{ userName }, { email: req.body.email }]
+      $or: [{ userName }, { email: req.body.email }],
     });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Check if user already exist by phoneNumber
+    const existingPhoneNumber = await UserModel.findOne({
+      phoneNumber: req.body.phoneNumber,
+    });
+    if (existingPhoneNumber) {
+      return res.status(400).json({ message: "Phone number already exists" });
     }
 
     // Create new user
@@ -358,9 +363,8 @@ const signUp = async (req, res) => {
       userName,
       email,
       phoneNumber,
-      role: 'USER',
+      role: "USER",
       password,
-      address,
     });
 
     // Save user
@@ -380,7 +384,6 @@ const signUp = async (req, res) => {
     res.status(500).json({ message: "Error creating user" });
   }
 };
-
 
 const getMe = async (req, res) => {
   const { id } = req.user;
