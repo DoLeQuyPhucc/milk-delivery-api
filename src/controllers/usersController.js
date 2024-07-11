@@ -531,6 +531,8 @@
  *                 type: string
  *               lastName:
  *                 type: string
+ *               userName:
+ *                 type: string
  *               avartaImage:
  *                 type: string
  *                 description: URL to the avatar image
@@ -667,7 +669,7 @@ export const createShipper = async (req, res) => {
     shipperName,
   } = req.body;
 
-  if (!firstName || !lastName || !userName ||!email || !password || !shipperName) {
+  if (!firstName || !lastName || !userName || !email || !password || !shipperName) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
