@@ -111,10 +111,10 @@ const client = new OAuth2Client(
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - userName
  *               - password
  *             properties:
- *               email:
+ *               userName:
  *                 type: string
  *               password:
  *                 type: string
@@ -183,6 +183,7 @@ const client = new OAuth2Client(
  *             required:
  *               - firstName
  *               - lastName
+ *               - userName
  *               - email
  *               - password
  *               - phoneNumber
@@ -190,6 +191,8 @@ const client = new OAuth2Client(
  *               firstName:
  *                 type: string
  *               lastName:
+ *                 type: string
+ *               userName:
  *                 type: string
  *               email:
  *                 type: string
@@ -274,10 +277,10 @@ import UserModel from "../models/userModel.js";
 
 // Sign In function
 const signIn = async (req, res) => {
-  const { email, password } = req.body;
+  const { userName, password } = req.body;
 
   try {
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ userName });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -337,11 +340,13 @@ const refreshToken = (req, res) => {
 
 // Sign Up function
 const signUp = async (req, res) => {
-  const { firstName, lastName, email, password, phoneNumber, address } = req.body;
+  const { firstName, lastName, userName, email, password, phoneNumber, address } = req.body;
 
   try {
-    // Check if user already exists
-    const existingUser = await UserModel.findOne({ email });
+    // Check if user already exists by userName or email
+    const existingUser = await UserModel.findOne({
+      $or: [{ userName }, { email: req.body.email }]
+    });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -350,6 +355,7 @@ const signUp = async (req, res) => {
     const user = new UserModel({
       firstName,
       lastName,
+      userName,
       email,
       phoneNumber,
       role: 'USER',

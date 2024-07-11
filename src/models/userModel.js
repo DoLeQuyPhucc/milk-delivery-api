@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
+
 const userSchema = new mongoose.Schema(
   {
     firstName: String,
     lastName: String,
+    userName: String,
     avartaImage: String,
     email: String,
     phoneNumber: String,
