@@ -17,7 +17,7 @@ router.get("/getAllBrands", getAllBrands);
 router.get("/:id", getBrandById);
 router.put("/:id", authenticateToken, isManager, updateBrand);
 router.delete("/:id", authenticateToken, isManager, deleteBrand);
-router.get("/getBrands/filtered", getBrandsFiltered);
-router.get("/getBrands/paged", getBrandsPaged);
+router.get("/getBrands/filtered", authenticateToken, getBrandsFiltered);
+router.get("/getBrands/paged", authenticateToken, getBrandsPaged);
 
 export default router;

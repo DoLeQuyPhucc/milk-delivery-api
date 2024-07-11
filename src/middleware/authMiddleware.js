@@ -66,3 +66,11 @@ export function isManagerOrAdmin(req, res, next) {
   }
   next();
 }
+
+export function isUserOrAdmin(req, res, next) {
+  const allowedRoles = ["USER", "ADMIN"];
+  if (!allowedRoles.includes(req.user.role)) {
+    return res.sendStatus(403);
+  }
+  next();
+}

@@ -15,21 +15,61 @@ const client = new OAuth2Client(
  *         _id:
  *           type: string
  *           description: The user ID.
+ *         firstName:
+ *           type: string
+ *           description: The user's first name.
+ *         lastName:
+ *           type: string
+ *           description: The user's last name.
  *         email:
  *           type: string
  *           description: The user's email.
- *         username:
+ *         phoneNumber:
  *           type: string
- *           description: The user's username.
+ *           description: The user's phone number.
+ *         role:
+ *           type: string
+ *           description: The user's role.
+ *         shipper:
+ *           type: string
+ *           description: The shipper ID associated with the user.
  *         createdAt:
  *           type: string
  *           format: date-time
  *           description: The date and time when the user was created.
  *       example:
  *         _id: 1234567890abcdef
+ *         firstName: John
+ *         lastName: Doe
  *         email: example@example.com
- *         username: example_user
+ *         phoneNumber: '123456789'
+ *         role: SHIPPER
+ *         shipper: 1234567890abcdef
  *         createdAt: 2024-06-09T12:00:00.000Z
+ *     Shipper:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The shipper ID.
+ *         shipperName:
+ *           type: string
+ *           description: The shipper's name.
+ *         phone:
+ *           type: string
+ *           description: The shipper's phone number.
+ *         store:
+ *           type: object
+ *           properties:
+ *             storeID:
+ *               type: string
+ *               description: The store ID associated with the shipper.
+ *       example:
+ *         _id: 1234567890abcdef
+ *         shipperName: John Doe Shipper
+ *         phone: '123456789'
+ *         store:
+ *           storeID: 1234567890abcdef
  *     SignInResponse:
  *       type: object
  *       properties:
@@ -41,8 +81,12 @@ const client = new OAuth2Client(
  *       example:
  *         user:
  *           _id: 1234567890abcdef
+ *           firstName: John
+ *           lastName: Doe
  *           email: example@example.com
- *           username: example_user
+ *           phoneNumber: '123456789'
+ *           role: SHIPPER
+ *           shipper: 1234567890abcdef
  *           createdAt: 2024-06-09T12:00:00.000Z
  *         token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  */
@@ -142,7 +186,6 @@ const client = new OAuth2Client(
  *               - email
  *               - password
  *               - phoneNumber
- *               - role
  *             properties:
  *               firstName:
  *                 type: string
@@ -156,7 +199,7 @@ const client = new OAuth2Client(
  *                 format: password
  *               phoneNumber:
  *                 type: string
- *               role:
+ *               address:
  *                 type: string
  *     responses:
  *       '201':
@@ -221,9 +264,13 @@ const client = new OAuth2Client(
  *                  example: 'Server error'
  */
 
+
+
+
 // Sign In function
 // authController.js
 import UserModel from "../models/userModel.js";
+import ShipperModel from "../models/shipperModel.js";
 
 // Sign In function
 const signIn = async (req, res) => {
@@ -290,7 +337,7 @@ const refreshToken = (req, res) => {
 
 // Sign Up function
 const signUp = async (req, res) => {
-  const { firstName, lastName, email, password, phoneNumber, role } = req.body;
+  const { firstName, lastName, email, password, phoneNumber, address } = req.body;
 
   try {
     // Check if user already exists
@@ -305,9 +352,9 @@ const signUp = async (req, res) => {
       lastName,
       email,
       phoneNumber,
-      role,
+      role: 'USER',
       password,
-      // Set other fields as necessary
+      address,
     });
 
     // Save user
@@ -327,6 +374,7 @@ const signUp = async (req, res) => {
     res.status(500).json({ message: "Error creating user" });
   }
 };
+
 
 const getMe = async (req, res) => {
   const { id } = req.user;
