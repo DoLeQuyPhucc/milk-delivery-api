@@ -270,7 +270,7 @@ const client = new OAuth2Client(
 // Sign In function
 // authController.js
 import UserModel from "../models/userModel.js";
-import ShipperModel from "../models/shipperModel.js";
+
 
 // Sign In function
 const signIn = async (req, res) => {
