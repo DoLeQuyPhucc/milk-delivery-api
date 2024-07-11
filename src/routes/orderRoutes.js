@@ -7,15 +7,17 @@ import {
   getListOrderByDate,
   deleteOrder,
   updateOrderStatus,
+  updateOrderTrackingStatus,
   getFilteredOrders,
   getOrdersPaged,
   updateDeliveryDateOrder,
   updateOrder,
   updateCircleShipmentOrder,
-  assignShipperToOrder
+  assignShipperToOrder,
+  getOrderItemById,
 } from "../controllers/orderController.js";
 
-import { authenticateToken, isUser, isManager, isUserOrManager } from "../middleware/authMiddleware.js";
+import { authenticateToken, isUser, isManager, isUserOrManager, isShipper } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -27,6 +29,8 @@ router.get("/getByDate/:date", getListOrderByDate);
 router.delete("/:id", authenticateToken, isUserOrManager, deleteOrder);
 router.patch("/:id/status", authenticateToken, isManager, updateOrderStatus);
 router.get("/getOrders/filtered", authenticateToken, isManager, getFilteredOrders);
+router.get("/:orderId/:itemId", authenticateToken, isShipper, getOrderItemById);
+router.patch("/:orderId/:itemId/status", authenticateToken, isShipper, updateOrderTrackingStatus);
 router.get("/getOrders/paged", authenticateToken, getOrdersPaged);
 router.put("/updateDeliveryDate/:id", authenticateToken, isUserOrManager, updateDeliveryDateOrder);
 router.put("/updateOrder/:id", authenticateToken, isUserOrManager, updateOrder);

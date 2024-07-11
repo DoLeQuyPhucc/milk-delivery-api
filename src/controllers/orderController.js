@@ -422,6 +422,36 @@ export const getOrderById = async (req, res) => {
   }
 };
 
+export const getOrderItemById = async (req, res) => {
+  try {
+    const {orderId, itemId} = req.params;
+    const order = await OrderModel.findById(orderId);
+
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+    }
+    
+    const tracking = order.circleShipment.tracking.find(t => t._id.toString() === itemId);
+
+    if (!tracking) {
+      res.status(404).json({ message: "Item not found in the order" });
+    }
+
+    const orderDetail = {
+      orderId,
+      package: order.package,
+      shippingAddress: order.shippingAddress,
+      item: tracking,
+    }
+
+    if (tracking) {
+      res.status(200).json(orderDetail);
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const createOrder = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -514,7 +544,7 @@ export const createOrder = async (req, res) => {
         }
         break;
       default:
-        break;
+        return res.status(400).json({ message: "Cannot choose Sunday for Start date" });
     }
 
     const order = new OrderModel({
@@ -560,8 +590,17 @@ export const getListOrderByDate = async (req, res) => {
   if (!date) {
     return res.status(400).json({ error: "Date query parameter is required" });
   }
+  
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
-  const targetDate = date;
+  const targetDate = formatDate(new Date(date));
+  console.log(targetDate);
   try {
     const orders = await OrderModel.find({
       "circleShipment.tracking.deliveredAt": targetDate,
@@ -576,7 +615,10 @@ export const getListOrderByDate = async (req, res) => {
           (tracking) => tracking.deliveredAt === targetDate
         );
 
+        console.log(relevantTrackings);
+
         return relevantTrackings.map((tracking) => ({
+          _id: order._id,
           package: packageDetails,
           shippingAddress,
           order: tracking,
@@ -614,6 +656,35 @@ export const updateOrderStatus = async (req, res) => {
     res
       .status(200)
       .json({ message: "Order status updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateOrderTrackingStatus = async (req, res) => {
+  const { orderId, itemId } = req.params;
+  const { status } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return res.status(404).json({ message: "No Order with that id" });
+  }
+
+  if (!status) {
+    return res.status(400).json({ message: "Status is required" });
+  }
+
+  try {
+    const result = await OrderModel.updateOne(
+      { _id: orderId, "circleShipment.tracking._id": itemId },
+      { $set: { 
+        "circleShipment.tracking.$.status": status ,
+        "circleShipment.tracking.$.isDelivered": true,
+      } 
+    }
+    );
+    res
+      .status(200)
+      .json({ message: "Order status updated successfully", result });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

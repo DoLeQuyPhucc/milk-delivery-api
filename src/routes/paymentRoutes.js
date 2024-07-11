@@ -1,8 +1,10 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
 import {
-  createPayment,
+  createPaymentOrder,
+  createPaymentOrderTracking,
   vnpayReturn,
+  vnpayReturnOrderTracking
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
@@ -14,7 +16,9 @@ const createPaymentLimiter = rateLimit({
     "Too many payment requests from this IP, please try again after 15 minutes",
 });
 
-router.post("/create_payment_url", createPaymentLimiter, createPayment);
+router.post("/create_payment_url", createPaymentLimiter, createPaymentOrder);
+router.post("/create_payment_order_tracking_url", createPaymentOrderTracking);
 router.get("/vnpay_return", vnpayReturn);
+router.get("/vnpay_return_order_tracking", vnpayReturnOrderTracking);
 
 export default router;
