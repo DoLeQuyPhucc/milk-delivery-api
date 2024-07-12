@@ -611,11 +611,14 @@ export const getListOrderByDate = async (req, res) => {
         const packageDetails = order.package;
 
         const { shippingAddress, circleShipment } = order;
-        const relevantTrackings = circleShipment.tracking.filter(
+
+        const relevantTrackings_v1 = circleShipment.tracking.filter(
           (tracking) => tracking.deliveredAt === targetDate
         );
 
-        console.log(relevantTrackings);
+        const relevantTrackings = relevantTrackings_v1.filter(
+          (tracking) => tracking.status === "Pending"
+        );
 
         return relevantTrackings.map((tracking) => ({
           _id: order._id,
@@ -663,7 +666,7 @@ export const updateOrderStatus = async (req, res) => {
 
 export const updateOrderTrackingStatus = async (req, res) => {
   const { orderId, itemId } = req.params;
-  const { status } = req.body;
+  const { status, reason } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
     return res.status(404).json({ message: "No Order with that id" });
@@ -674,17 +677,34 @@ export const updateOrderTrackingStatus = async (req, res) => {
   }
 
   try {
-    const result = await OrderModel.updateOne(
-      { _id: orderId, "circleShipment.tracking._id": itemId },
-      { $set: { 
-        "circleShipment.tracking.$.status": status ,
-        "circleShipment.tracking.$.isDelivered": true,
-      } 
+    if(status === "Failed") {
+      const result = await OrderModel.updateOne(
+        { _id: orderId, "circleShipment.tracking._id": itemId },
+        { $set: { 
+          "circleShipment.tracking.$.status": status,
+          "circleShipment.tracking.$.isDelivered": false,
+          "circleShipment.tracking.$.reason": reason,
+        } 
+      }
+      );
+      res
+        .status(200)
+        .json({ message: "Order status updated successfully", result });
     }
-    );
-    res
-      .status(200)
-      .json({ message: "Order status updated successfully", result });
+    if(status === "Completed") {
+      const result = await OrderModel.updateOne(
+        { _id: orderId, "circleShipment.tracking._id": itemId },
+        { $set: { 
+          "circleShipment.tracking.$.status": status,
+          "circleShipment.tracking.$.isDelivered": true,
+          "circleShipment.tracking.$.reason": reason,
+        } 
+      }
+      );
+      res
+        .status(200)
+        .json({ message: "Order status updated successfully", result });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -883,35 +903,47 @@ export const updateCircleShipmentOrder = async (req, res) => {
 };
 
 export const assignShipperToOrder = async (req, res) => {
-  const { orderId, shipperId } = req.body;
+  const { orderId, shipperId, itemId } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(shipperId)) {
     return res.status(400).json({ message: "Invalid order or shipper ID" });
   }
 
   try {
-    const order = await OrderModel.findById(orderId);
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
+   // Retrieve the order to check the shipperId in the tracking item
+   const order = await OrderModel.findOne(
+    { _id: orderId, "circleShipment.tracking._id": itemId },
+    { "circleShipment.tracking.$": 1 }
+  );
 
-    const shipper = await ShipperModel.findById(shipperId);
-    if (!shipper) {
-      return res.status(404).json({ message: "Shipper not found" });
-    }
+  if (!order) {
+    return res.status(404).send('Order or tracking item not found');
+  }
 
-    if(order.shipper) {
-      return res.status(400).json({ message: "Order already has a shipper assigned" });
-    }
+  const trackingItem = order.circleShipment.tracking[0];
 
-    if(order.status !== "Pending" || order.isPaid === false) {
-      return res.status(400).json({ message: "Order must be pending and paid to assign a shipper" });
-    }
+  if (trackingItem.status !== 'Pending') {  
+    return res.status(400).json({ message: "Tracking item is not in a pending"});
+  }
 
-    order.shipper = shipperId;
-    await order.save();
+  if (trackingItem.shipperId) {
+    return res.status(400).json({ message: "Tracking item already has a shipper assigned" });
+  }
 
-    res.status(200).json({ message: "Shipper assigned to order successfully", order });
+  // Proceed to update the tracking item with the new shipperId
+  const result = await OrderModel.updateOne(
+    { _id: orderId, "circleShipment.tracking._id": itemId },
+    { $set: { 
+      "circleShipment.tracking.$.shipper": shipperId
+    } }
+  );
+
+  if (result.matchedCount === 0) {
+    return res.status(404).send('Order or tracking item not found');
+  }
+
+  res.status(200).json({ message: "Shipper assigned to tracking item successfully" });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
