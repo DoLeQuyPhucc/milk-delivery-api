@@ -621,6 +621,10 @@ export const createUser = async (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
+  if (/\s/.test(userName)) {
+    return res.status(400).json({ message: "Username must not contain spaces" });
+  }
+
   const newUser = new UserModel({
     firstName,
     lastName,
