@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import OrderModel from "../models/orderModel.js";
 import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
-import PaymentModel from "../models/paymentModel.js"; // Import PaymentModel
+import PaymentModel from "../models/paymentModel.js";
 
 dotenv.config();
 
@@ -38,7 +38,7 @@ export const createPaymentOrder = async (req, res) => {
     const createDate = date.format("YYYYMMDDHHmmss");
     const orderId = date.format("HHmmss");
 
-    const expireDate = date.add(15, "minutes").format("YYYYMMDDHHmmss");
+    const expireDate = date.add(5, "minutes").format("YYYYMMDDHHmmss");
 
     const {
       amount,

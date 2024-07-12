@@ -311,6 +311,8 @@
 import mongoose from "mongoose";
 import ShipperModel from "../models/shipperModel.js";
 import StoreModel from "../models/storeModel.js";
+import OrderModel from "../models/orderModel.js";
+import UserModel from "../models/userModel.js";
 
 export const getAllShippers = async (req, res) => {
   try {
@@ -368,15 +370,31 @@ export const deleteShipper = async (req, res) => {
   }
 
   try {
-    const shipper = await ShipperModel.findByIdAndDelete(id).exec();
+    // Find the shipper by ID
+    const shipper = await ShipperModel.findById(id).exec();
 
     if (!shipper) {
-      return res.status(404).json({ message: "Shippers not found" });
+      return res.status(404).json({ message: "Shipper not found" });
     }
 
-    res.json({ message: "Shippers deleted successfully" });
+    const userId = shipper.user;
+
+    // Delete the shipper
+    await ShipperModel.findByIdAndDelete(id).exec();
+
+    // Delete the associated user
+    if (userId) {
+      await UserModel.findByIdAndDelete(userId).exec();
+    }
+
+    await OrderModel.updateMany(
+      { shipper: id },
+      { $unset: { shipper: 1 } } 
+    );
+
+    res.json({ message: "Shipper deleted successfull" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting shipper" });
+    res.status(500).json({ message: "Error deleting shipper", error: error.message });
   }
 };
 
@@ -416,14 +434,15 @@ export const assignStoreToShipper = async (req, res) => {
       return res.status(404).json({ message: "Store not found" });
     }
 
-    shipper.store = store._id;
+    // Add the new store to the stores array
+    shipper.store.push({ storeID: store._id });
     await shipper.save();
 
     // Optionally, verify the update by querying the shipper again
-    const updatedShipper = await ShipperModel.findById(shipperId).populate('store');
+    const updatedShipper = await ShipperModel.findById(shipperId).populate('user');
     console.log('Updated Shipper:', updatedShipper);
 
-    res.status(200).json({ message: "Store assigned to shipper successfully", shipper: updatedShipper});
+    res.status(200).json({ message: "Store assigned to shipper successfully", shipper: updatedShipper });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

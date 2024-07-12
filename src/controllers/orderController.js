@@ -366,8 +366,6 @@
  *                 value: { "message": "An unexpected error occurred on the server." }
  */
 
-
-
 import mongoose from "mongoose";
 import { validationResult } from "express-validator";
 import OrderModel from "../models/orderModel.js";
@@ -424,14 +422,16 @@ export const getOrderById = async (req, res) => {
 
 export const getOrderItemById = async (req, res) => {
   try {
-    const {orderId, itemId} = req.params;
+    const { orderId, itemId } = req.params;
     const order = await OrderModel.findById(orderId);
 
     if (!order) {
       res.status(404).json({ message: "Order not found" });
     }
-    
-    const tracking = order.circleShipment.tracking.find(t => t._id.toString() === itemId);
+
+    const tracking = order.circleShipment.tracking.find(
+      (t) => t._id.toString() === itemId
+    );
 
     if (!tracking) {
       res.status(404).json({ message: "Item not found in the order" });
@@ -442,7 +442,7 @@ export const getOrderItemById = async (req, res) => {
       package: order.package,
       shippingAddress: order.shippingAddress,
       item: tracking,
-    }
+    };
 
     if (tracking) {
       res.status(200).json(orderDetail);
@@ -544,7 +544,9 @@ export const createOrder = async (req, res) => {
         }
         break;
       default:
-        return res.status(400).json({ message: "Cannot choose Sunday for Start date" });
+        return res
+          .status(400)
+          .json({ message: "Cannot choose Sunday for Start date" });
     }
 
     const order = new OrderModel({
@@ -590,7 +592,7 @@ export const getListOrderByDate = async (req, res) => {
   if (!date) {
     return res.status(400).json({ error: "Date query parameter is required" });
   }
-  
+
   const formatDate = (date) => {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -789,31 +791,51 @@ export const getOrdersByBrand = async (req, res) => {
 };
 
 export const updateDeliveryDateOrder = async (req, res) => {
-  const { id } = req.params;
-  const { newDate } = req.body;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ message: "No Order with that id" });
-  }
-
-  if (!newDate) {
-    return res.status(400).json({ message: "New date is required" });
-  }
+  const { orderId } = req.params;
+  const { trackingId, newDeliveredAt } = req.body;
 
   try {
-    const order = await OrderModel.findById(id);
+    const order = await OrderModel.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).send({ message: "Order not found" });
     }
 
-    order.deliveredAt = newDate;
-    await order.save();
+    const tracking = order.circleShipment.tracking.id(trackingId);
+    if (!tracking) {
+      return res.status(404).send({ message: "Tracking not found" });
+    }
 
-    res.status(200).json({ message: "Order date updated successfully", order });
+    tracking.deliveredAt = newDeliveredAt;
+    tracking.status = "Pending";
+    order.updateStatus();
+
+    await order.save();
+    res.send(order);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).send({ message: error.message });
   }
 };
+
+export const cancelOrder = async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    const order = await OrderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).send({ message: "Order not found" });
+    }
+
+    order.status = "Cancelled";
+    order.circleShipment.tracking.forEach((tracking) => {
+      tracking.status = "Cancelled";
+    });
+
+    await order.save();
+    res.send(order);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+}
 
 export const updateOrder = async (req, res) => {
   const { orderId } = req.params; // Assuming the order ID is passed as a URL parameter
@@ -905,7 +927,10 @@ export const updateCircleShipmentOrder = async (req, res) => {
 export const assignShipperToOrder = async (req, res) => {
   const { orderId, shipperId, itemId } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(shipperId)) {
+  if (
+    !mongoose.Types.ObjectId.isValid(orderId) ||
+    !mongoose.Types.ObjectId.isValid(shipperId)
+  ) {
     return res.status(400).json({ message: "Invalid order or shipper ID" });
   }
 
