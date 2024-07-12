@@ -36,7 +36,7 @@ router.delete("/getUserById/:id", authenticateToken, isAdmin, deleteUser);
 router.get("/getUserByFirstName", authenticateToken, getUserByFirstName);
 
 // PUT /api/users/edit
-router.put("/edit-user", authenticateToken, isAdmin, editUser);
+router.put("/edit-user", authenticateToken, isUserOrAdmin, editUser);
 
 // GET /api/users/by-email
 router.get("/by-email", authenticateToken, getUserByEmail);
