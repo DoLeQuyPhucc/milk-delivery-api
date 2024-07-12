@@ -31,21 +31,21 @@ export function isAdmin(req, res, next) {
 }
 
 export function isUser(req, res, next) {
-  if (req.user.role !== "USER") {
+  if (req.user.role !== "USER" && req.user.role !== "ADMIN") {
     return res.sendStatus(403);
   }
   next();
 }
 
 export function isManager(req, res, next) {
-  if (req.user.role !== "MANAGER") {
+  if (req.user.role !== "MANAGER" && req.user.role !== "ADMIN") {
     return res.sendStatus(403);
   }
   next();
 }
 
 export function isShipper(req, res, next) {
-  if (req.user.role !== "SHIPPER") {
+  if (req.user.role !== "SHIPPER" && req.user.role !== "ADMIN") {
     return res.sendStatus(403);
   }
   next();
@@ -54,10 +54,10 @@ export function isShipper(req, res, next) {
 export function isUserOrManager(req, res, next) {
   const allowedRoles = ["USER", "MANAGER"];
   if (!allowedRoles.includes(req.user.role)) {
-    return res.sendStatus(403); 
+    return res.sendStatus(403);
   }
-  next(); 
-}
+  next();
+} 
 
 export function isManagerOrAdmin(req, res, next) {
   const allowedRoles = ["MANAGER", "ADMIN"];
