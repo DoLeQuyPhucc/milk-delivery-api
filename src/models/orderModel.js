@@ -64,7 +64,7 @@ const OrderSchema = new mongoose.Schema({
           ],
           default: "Pending",
         },
-        shipper: { type: mongoose.Schema.Types.ObjectId, ref: "shippers"},
+        shipper: { type: mongoose.Schema.Types.ObjectId, ref: "shippers" },
         isPaid: { type: Boolean, default: false },
         reason: { type: String },
         newDate: { type: String },
@@ -72,11 +72,7 @@ const OrderSchema = new mongoose.Schema({
       },
     ],
   },
-  _id: {
-    type: mongoose.Schema.Types.ObjectId,
-    auto: true,
-  },
-});
+}, { timestamps: true });
 
 OrderSchema.methods.updateStatus = function () {
   const order = this;
