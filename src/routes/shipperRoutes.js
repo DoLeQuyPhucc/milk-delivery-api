@@ -16,6 +16,6 @@ router.post("/", authenticateToken, isManager, createShipper);
 router.get("/:id", authenticateToken, isManager, getShipperById);
 router.delete("/:id", authenticateToken, isManager, deleteShipper);
 router.put("/:id", authenticateToken, isManager, updateShipper);
-router.post("/assignStoreToShipper/:shipperId/:storeId", authenticateToken, isManager, assignStoreToShipper);
+router.post("/assignStoreToShipper", authenticateToken, isManager, assignStoreToShipper);
 
 export default router;

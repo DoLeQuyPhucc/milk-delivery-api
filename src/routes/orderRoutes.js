@@ -16,15 +16,25 @@ import {
   assignShipperToOrder,
   getOrderItemById,
   cancelOrder,
+  getTotalDeliveredOrders,
+  getTotalCancelledOrders,
+  getTotalOrdersInMonth,
+  getTotalUserOrders,
+  getTotalPriceOfAllOrders
 } from "../controllers/orderController.js";
 
-import { authenticateToken, isUser, isManager, isUserOrManager, isShipper } from "../middleware/authMiddleware.js";
+import { authenticateToken, isUser, isManager, isUserOrManager, isShipper, isAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.post("/", authenticateToken, isUser, createOrder);
 router.get("/getAllOrders", authenticateToken, isManager, getAllOrders);
 router.get("/user/:userId", authenticateToken, isUser, getOrdersByUser);
+router.get('/getOrder/total-delivered', authenticateToken, isManager, getTotalDeliveredOrders);
+router.get('/getOrder/total-cancelled', authenticateToken, isManager, getTotalCancelledOrders);
+router.get('/getOrder/total-in-month/:year/:month', authenticateToken, isManager, getTotalOrdersInMonth);
+router.get('/getOrder/total-user-orders', authenticateToken, isManager, getTotalUserOrders);
+router.get('/getOrder/total-price-of-all-orders', authenticateToken, isManager, getTotalPriceOfAllOrders);
 router.get("/:id", authenticateToken, getOrderById);
 router.get("/getByDate/:date", getListOrderByDate);
 router.delete("/:id", authenticateToken, isUserOrManager, deleteOrder);
@@ -38,5 +48,6 @@ router.put("/:orderId/cancel", authenticateToken, isUser, cancelOrder);
 router.put("/updateOrder/:id", authenticateToken, isUserOrManager, updateOrder);
 router.put("/updateCircleShipment/:id", authenticateToken, isUserOrManager, updateCircleShipmentOrder);
 router.post("/assignShipper", authenticateToken, isManager, assignShipperToOrder);
+
 
 export default router;

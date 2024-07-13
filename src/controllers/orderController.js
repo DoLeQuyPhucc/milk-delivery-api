@@ -297,7 +297,7 @@
  * @swagger
  * /api/orders/assignShipper:
  *   post:
- *     summary: Assign a shipper to an order
+ *     summary: Assign a shipper to multiple orders
  *     tags: [Orders]
  *     requestBody:
  *       required: true
@@ -308,16 +308,21 @@
  *             properties:
  *               orderId:
  *                 type: string
- *                 description: The ID of the order
+ *                 description: The IDs of the orders
  *               shipperId:
  *                 type: string
  *                 description: The ID of the shipper
+ *               itemIds:
+ *                 type: array
+ *                 items:
+ *                       type: string
  *             example:
  *               orderId: "60c72b1f9b1d4c3a6cddf80b"
  *               shipperId: "60c72b2f9b1d4c3a6cddf80c"
+ *               itemIds: ["60c72b1f9b1d4c3a6cddf80b", "60c72b1f9b1d4c3a6cddf80c"]  
  *     responses:
  *       '200':
- *         description: Shipper assigned to order successfully
+ *         description: Shipper assigned to orders successfully
  *         content:
  *           application/json:
  *             schema:
@@ -325,11 +330,13 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Shipper assigned to order successfully"
- *                 order:
- *                   $ref: '#/components/schemas/Order'
+ *                   example: "Shipper assigned to orders successfully"
+ *                 orders:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Order'
  *       '400':
- *         description: Invalid order or shipper ID
+ *         description: Invalid order IDs or shipper ID
  *         content:
  *           application/json:
  *             schema:
@@ -339,9 +346,9 @@
  *                   type: string
  *             examples:
  *               invalidId:
- *                 value: { "message": "Invalid order ID or shipper ID provided." }
+ *                 value: { "message": "Invalid order IDs or shipper ID provided." }
  *       '404':
- *         description: Order or shipper not found
+ *         description: One or more orders or shipper not found
  *         content:
  *           application/json:
  *             schema:
@@ -351,7 +358,7 @@
  *                   type: string
  *             examples:
  *               notFound:
- *                 value: { "message": "Order or shipper not found." }
+ *                 value: { "message": "One or more orders or shipper not found." }
  *       '500':
  *         description: Server error
  *         content:
@@ -365,6 +372,168 @@
  *               serverError:
  *                 value: { "message": "An unexpected error occurred on the server." }
  */
+
+/**
+ * @swagger
+ * /api/orders/getOrder/total-delivered:
+ *   get:
+ *     summary: Get the total number of delivered orders
+ *     tags: [Orders]
+ *     responses:
+ *       200:
+ *         description: Total number of delivered orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalDeliveredOrders:
+ *                   type: integer
+ *                   example: 25
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: An unexpected error occurred on the server.
+ */
+
+/**
+ * @swagger
+ * /api/orders/getOrder/total-cancelled:
+ *   get:
+ *     summary: Get the total number of cancelled orders
+ *     tags: [Orders]
+ *     responses:
+ *       200:
+ *         description: Total number of cancelled orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalCancelledOrders:
+ *                   type: integer
+ *                   example: 10
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: An unexpected error occurred on the server.
+ */
+
+/**
+ * @swagger
+ * /api/orders/getOrder/total-in-month/{year}/{month}:
+ *   get:
+ *     summary: Get the total number of orders in a specified month
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: year
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 2024
+ *         description: The year of the orders
+ *       - in: path
+ *         name: month
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 7
+ *         description: The month of the orders (1-12)
+ *     responses:
+ *       200:
+ *         description: Total number of orders in the specified month
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalOrdersInMonth:
+ *                   type: integer
+ *                   example: 100
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: An unexpected error occurred on the server.
+ */
+
+/**
+ * @swagger
+ * /api/orders/getOrder/total-user-orders:
+ *   get:
+ *     summary: Get the total number of user orders
+ *     tags: [Orders]
+ *     responses:
+ *       200:
+ *         description: Total number of user orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalUserOrders:
+ *                   type: number
+ *                   example: 100
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "An unexpected error occurred on the server."
+ */
+
+/**
+ * @swagger
+ * /api/orders/getOrder/total-price-of-all-orders:
+ *   get:
+ *     summary: Get the total price of all orders
+ *     tags: [Orders]
+ *     responses:
+ *       200:
+ *         description: Total price of all orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalPriceOfAllOrders:
+ *                   type: number
+ *                   example: 50000
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "An unexpected error occurred on the server."
+ */
+
+
 
 import mongoose from "mongoose";
 import { validationResult } from "express-validator";
@@ -679,29 +848,31 @@ export const updateOrderTrackingStatus = async (req, res) => {
   }
 
   try {
-    if(status === "Failed") {
+    if (status === "Failed") {
       const result = await OrderModel.updateOne(
         { _id: orderId, "circleShipment.tracking._id": itemId },
-        { $set: { 
-          "circleShipment.tracking.$.status": status,
-          "circleShipment.tracking.$.isDelivered": false,
-          "circleShipment.tracking.$.reason": reason,
-        } 
-      }
+        {
+          $set: {
+            "circleShipment.tracking.$.status": status,
+            "circleShipment.tracking.$.isDelivered": false,
+            "circleShipment.tracking.$.reason": reason,
+          },
+        }
       );
       res
         .status(200)
         .json({ message: "Order status updated successfully", result });
     }
-    if(status === "Completed") {
+    if (status === "Completed") {
       const result = await OrderModel.updateOne(
         { _id: orderId, "circleShipment.tracking._id": itemId },
-        { $set: { 
-          "circleShipment.tracking.$.status": status,
-          "circleShipment.tracking.$.isDelivered": true,
-          "circleShipment.tracking.$.reason": reason,
-        } 
-      }
+        {
+          $set: {
+            "circleShipment.tracking.$.status": status,
+            "circleShipment.tracking.$.isDelivered": true,
+            "circleShipment.tracking.$.reason": reason,
+          },
+        }
       );
       res
         .status(200)
@@ -835,7 +1006,7 @@ export const cancelOrder = async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
-}
+};
 
 export const updateOrder = async (req, res) => {
   const { orderId } = req.params; // Assuming the order ID is passed as a URL parameter
@@ -925,8 +1096,9 @@ export const updateCircleShipmentOrder = async (req, res) => {
 };
 
 export const assignShipperToOrder = async (req, res) => {
-  const { orderId, shipperId, itemId } = req.body;
+  const { orderId, shipperId, itemIds } = req.body;
 
+  // Validate orderId and shipperId
   if (
     !mongoose.Types.ObjectId.isValid(orderId) ||
     !mongoose.Types.ObjectId.isValid(shipperId)
@@ -934,41 +1106,121 @@ export const assignShipperToOrder = async (req, res) => {
     return res.status(400).json({ message: "Invalid order or shipper ID" });
   }
 
+  // Validate each itemId in itemIds array
+  if (!itemIds.every((itemId) => mongoose.Types.ObjectId.isValid(itemId))) {
+    return res.status(400).json({ message: "One or more invalid item IDs" });
+  }
+
   try {
-   // Retrieve the order to check the shipperId in the tracking item
-   const order = await OrderModel.findOne(
-    { _id: orderId, "circleShipment.tracking._id": itemId },
-    { "circleShipment.tracking.$": 1 }
-  );
+    // Retrieve the order to check the shipperId in the tracking items
+    const order = await OrderModel.findOne({ _id: orderId });
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
 
-  if (!order) {
-    return res.status(404).send('Order or tracking item not found');
+    // Filter tracking items that are pending and do not have a shipper assigned
+    const trackingItemsToUpdate = order.circleShipment.tracking.filter(
+      (item) =>
+        itemIds.includes(item._id.toString()) &&
+        item.status === "Pending" &&
+        !item.shipper
+    );
+
+    const trackingItemsAlreadyAssigned = order.circleShipment.tracking.filter(
+      (item) => itemIds.includes(item._id.toString()) && item.shipper
+    );
+
+    if (trackingItemsAlreadyAssigned.length > 0) {
+      return res.status(400).json({
+        message: "One or more tracking items already have a shipper assigned",
+        trackingItemsAlreadyAssigned,
+      });
+    }
+
+    if (trackingItemsToUpdate.length !== itemIds.length) {
+      return res.status(400).json({
+        message:
+          "One or more tracking items cannot be updated or do not meet the criteria",
+      });
+    }
+
+    // Proceed to update each tracking item with the new shipperId
+    const updates = trackingItemsToUpdate.map((item) =>
+      OrderModel.updateOne(
+        { _id: orderId, "circleShipment.tracking._id": item._id },
+        { $set: { "circleShipment.tracking.$.shipper": shipperId } }
+      )
+    );
+
+    await Promise.all(updates);
+
+    res.status(200).json({
+      message: "Shipper assigned to tracking items successfully",
+      trackingItemsToUpdate,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  const trackingItem = order.circleShipment.tracking[0];
 
-  if (trackingItem.status !== 'Pending') {  
-    return res.status(400).json({ message: "Tracking item is not in a pending"});
+// Get the total number of delivered orders
+export const getTotalDeliveredOrders = async (req, res) => {
+  try {
+    const totalDeliveredOrders = await OrderModel.countDocuments({ status: 'Delivered' });
+    res.status(200).json({ totalDeliveredOrders });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  if (trackingItem.shipperId) {
-    return res.status(400).json({ message: "Tracking item already has a shipper assigned" });
+// Get the total number of cancelled orders
+export const getTotalCancelledOrders = async (req, res) => {
+  try {
+    const totalCancelledOrders = await OrderModel.countDocuments({ status: 'Cancelled' });
+    res.status(200).json({ totalCancelledOrders });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  // Proceed to update the tracking item with the new shipperId
-  const result = await OrderModel.updateOne(
-    { _id: orderId, "circleShipment.tracking._id": itemId },
-    { $set: { 
-      "circleShipment.tracking.$.shipper": shipperId
-    } }
-  );
+// Get the total number of orders in a specified month
+export const getTotalOrdersInMonth = async (req, res) => {
+  const { year, month } = req.params;
 
-  if (result.matchedCount === 0) {
-    return res.status(404).send('Order or tracking item not found');
+  try {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    const totalOrdersInMonth = await OrderModel.countDocuments({
+      createdAt: { $gte: startDate, $lte: endDate },
+    });
+
+    res.status(200).json({ totalOrdersInMonth });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  res.status(200).json({ message: "Shipper assigned to tracking item successfully" });
+// Total user orders
+export const getTotalUserOrders = async (req, res) => {
+  try {
+    const totalUserOrders = await OrderModel.countDocuments();
+    res.status(200).json({ totalUserOrders });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
+// Total price of all tracking items in all orders
+export const getTotalPriceOfAllOrders = async (req, res) => {
+  try {
+    const orders = await OrderModel.find();
+    const totalPriceOfAllOrders = orders.reduce((sum, order) => {
+      const trackingTotal = order.circleShipment.tracking.reduce((trackingSum, trackingItem) => trackingSum + (trackingItem.price || 0), 0);
+      return sum + trackingTotal;
+    }, 0);
+    res.status(200).json({ totalPriceOfAllOrders });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
