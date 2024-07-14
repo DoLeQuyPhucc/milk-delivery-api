@@ -25,11 +25,20 @@ const packageSchema = new mongoose.Schema({
     type: [productInPackageSchema],
     required: true,
   },
-  totalAmount: {
+  typeOfDelivery: {
+    type: String,
+    enum: ["1-WEEK", "1-MONTH", "2-MONTHS", "3-MONTHS", "6-MONTHS"],
+    required: true,
+  },
+  numberOfShipment: {
     type: Number,
     required: true,
   },
-  totalPrice: {
+  discount: {
+    type: Number,
+    required: true,
+  },
+  totalPriceDiscount: {
     type: Number,
     required: true,
   },

@@ -25,8 +25,23 @@ const OrderSchema = new mongoose.Schema({
         quantity: { type: Number, required: true },
       },
     ],
-    totalAmount: { type: Number, required: true },
-    totalPrice: { type: Number, required: true },
+    typeOfDelivery: {
+      type: String,
+      enum: ["1-WEEK", "1-MONTH", "2-MONTHS", "3-MONTHS", "6-MONTHS"],
+      required: true,
+    },
+    numberOfShipment: {
+      type: Number,
+      required: true,
+    },
+    discount: {
+      type: Number,
+      required: true,
+    },
+    totalPriceDiscount: {
+      type: Number,
+      required: true,
+    },
   },
   shippingAddress: {
     fullName: { type: String, required: true },
@@ -53,6 +68,7 @@ const OrderSchema = new mongoose.Schema({
         trackingNumber: { type: String, required: true },
         isDelivered: { type: Boolean, default: false },
         deliveredAt: { type: String },
+        price: { type: Number, required: true },
         status: {
           type: String,
           enum: [

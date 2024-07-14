@@ -573,10 +573,9 @@ import BrandModel from "../models/brandModel.js";
 import mongoose from "mongoose";
 
 export const createPackage = async (req, res) => {
-  const { products } = req.body;
+  const { products, typeOfDelivery, numberOfShipment, discount, totalPriceDiscount } = req.body;
 
   try {
-    let totalAmount = 0;
     let totalPrice = 0;
 
     // Using map to create an array of product data
@@ -589,14 +588,19 @@ export const createPackage = async (req, res) => {
     });
 
     productDetails.forEach((productDetail) => {
-      totalAmount += productDetail.quantity;
       totalPrice += productDetail.quantity * productDetail.product.price;
     });
 
+    if (totalPriceDiscount != (totalPrice * (1 -discount))) {
+      return res.status(400).json({ message: "Invalid total price discount." });
+    }
+
     const newPackage = new PackageModel({
       products: productDetails,
-      totalAmount,
-      totalPrice,
+      numberOfShipment,
+      typeOfDelivery,
+      discount,
+      totalPriceDiscount,
     });
 
     const savedPackage = await newPackage.save();

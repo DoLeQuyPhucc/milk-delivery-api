@@ -519,6 +519,7 @@ export const createOrder = async (req, res) => {
               isDelivered: false,
               deliveredAt: formatDate(new Date(currentDate)),
               isPaid: isPaid ? true : false,
+              price: isPaid ? 0 : (pkg.totalPriceDiscount / numberOfShipment),
             };
             circleShipment.tracking.push(trackingItem);
             currentDeliveryCount++;
@@ -536,6 +537,7 @@ export const createOrder = async (req, res) => {
               isDelivered: false,
               deliveredAt: formatDate(new Date(currentDate)),
               isPaid: isPaid ? true : false,
+              price: isPaid ? 0 : (pkg.totalPriceDiscount / numberOfShipment),
             };
             circleShipment.tracking.push(trackingItem);
             currentDeliveryCount++;
@@ -838,8 +840,8 @@ export const cancelOrder = async (req, res) => {
 }
 
 export const updateOrder = async (req, res) => {
-  const { orderId } = req.params; // Assuming the order ID is passed as a URL parameter
-  const updates = req.body; // Assuming updates are sent in the request body
+  const { orderId } = req.params;
+  const updates = req.body;
 
   try {
     const order = await OrderModel.findById(orderId);
