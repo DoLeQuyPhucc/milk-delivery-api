@@ -111,12 +111,12 @@ const client = new OAuth2Client(
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - userName
  *               - password
  *             properties:
- *               email:
+ *               userName:
  *                 type: string
- *                 format: email
+ *                 format: userName
  *               password:
  *                 type: string
  *                 format: password
@@ -194,6 +194,7 @@ const client = new OAuth2Client(
  *               - email
  *               - firstName
  *               - lastName
+ *               - userName
  *               - phoneNumber
  *               - address
  *               - password
@@ -204,6 +205,8 @@ const client = new OAuth2Client(
  *               firstName:
  *                 type: string
  *               lastName:
+ *                 type: string
+ *               userName:
  *                 type: string
  *               phoneNumber:
  *                 type: string
@@ -313,10 +316,10 @@ import { sendVerificationEmail } from "../utils/emailUtils.js";
 
 // Sign In function
 const signIn = async (req, res) => {
-  const { email, password } = req.body;
+  const { userName, password } = req.body;
 
   try {
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ userName });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -398,7 +401,7 @@ const signUp = async (req, res) => {
       email,
       firstName,
       lastName,
-      userName: email,
+      userName,
       phoneNumber,
       address,
       password,
