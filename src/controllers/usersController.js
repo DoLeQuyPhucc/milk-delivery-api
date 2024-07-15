@@ -104,6 +104,8 @@
  *                 type: string
  *               lastName:
  *                 type: string
+ *               userName:
+ *                 type: string
  *               avartaImage:
  *                 type: string
  *                 description: URL to the avatar image
@@ -518,6 +520,7 @@
  *             required:
  *               - firstName
  *               - lastName
+ *               - userName
  *               - email
  *               - password
  *               - shipperName
@@ -525,6 +528,8 @@
  *               firstName:
  *                 type: string
  *               lastName:
+ *                 type: string
+ *               userName: 
  *                 type: string
  *               avartaImage:
  *                 type: string
@@ -601,6 +606,7 @@ export const createUser = async (req, res) => {
   const {
     firstName,
     lastName,
+    userName,
     avartaImage,
     email,
     phoneNumber,
@@ -609,7 +615,7 @@ export const createUser = async (req, res) => {
     address,
   } = req.body;
 
-  if (!firstName || !lastName || !email || !password) {
+  if (!firstName || !lastName || !userName || !email || !password) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
@@ -617,7 +623,7 @@ export const createUser = async (req, res) => {
     firstName,
     lastName,
     email,
-    userName: email,
+    userName,
     avartaImage,
     phoneNumber,
     role,
@@ -652,6 +658,7 @@ export const createShipper = async (req, res) => {
   const {
     firstName,
     lastName,
+    userName,
     avartaImage,
     email,
     phoneNumber,
@@ -660,7 +667,7 @@ export const createShipper = async (req, res) => {
     shipperName,
   } = req.body;
 
-  if (!firstName || !lastName || !email || !password || !shipperName) {
+  if (!firstName || !lastName || userName || !email || !password || !shipperName) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
@@ -670,12 +677,17 @@ export const createShipper = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    const existingUserByUserName = await UserModel.findOne({ userName });
+    if(existingUserByUserName){
+      return res.status(400).json({ message: "User already exists" });
+    }
+
     // Create new user with role SHIPPER
     const user = new UserModel({
       firstName,
       lastName,
       email,
-      userName: email,
+      userName ,
       avartaImage,
       phoneNumber,
       role: "SHIPPER",
