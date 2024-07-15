@@ -295,6 +295,45 @@
 
 /**
  * @swagger
+ * /api/orders/confirm:
+ *   get:
+ *     summary: Confirm an order
+ *     description: Confirm an order using a confirmation token
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         description: Confirmation token
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: Order confirmed successfully
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Order confirmed successfully"
+ *       404:
+ *         description: Invalid or expired confirmation token
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Invalid or expired confirmation token"
+ *       500:
+ *         description: Server error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Server error"
+ */
+
+/**
+ * @swagger
  * /api/orders/assignShipper:
  *   post:
  *     summary: Assign a shipper to multiple tracking items across multiple orders
@@ -634,7 +673,6 @@ export const createOrder = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  console.log("req.body: ", req.body);
   const {
     packageID,
     shippingAddress,
@@ -648,29 +686,29 @@ export const createOrder = async (req, res) => {
   } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(packageID)) {
-    return res.status(404).json({ message: "No package with that id" });
+    return res.status(404).json({ message: 'No package with that id' });
   }
 
   if (!mongoose.Types.ObjectId.isValid(userID)) {
-    return res.status(404).json({ message: "No user with that id" });
+    return res.status(404).json({ message: 'No user with that id' });
   }
 
   try {
     const pkg = await PackageModel.findById(packageID);
     if (!pkg) {
-      return res.status(404).json({ message: "Package not found" });
+      return res.status(404).json({ message: 'Package not found' });
     }
 
     const user = await UserModel.findById(userID);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     const formatDate = (date) => {
       const d = new Date(date);
       const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
 
@@ -722,10 +760,11 @@ export const createOrder = async (req, res) => {
         }
         break;
       default:
-        return res
-          .status(400)
-          .json({ message: "Cannot choose Sunday for Start date" });
+        return res.status(400).json({ message: 'Cannot choose Sunday for Start date' });
     }
+
+    // Generate a confirmation token
+    const confirmationToken = crypto.randomBytes(32).toString('hex');
 
     const order = new OrderModel({
       package: pkg,
@@ -736,18 +775,43 @@ export const createOrder = async (req, res) => {
       paidAt: paidAt ? formatDate(paidAt) : null,
       deliveredAt: formatDate(deliveredAt),
       circleShipment,
-      status: status || "Pending",
+      status: status || 'Pending',
+      confirmationToken,
     });
 
     const newOrder = await order.save();
+
+    // Send confirmation email
+    sendOrderConfirmationEmail(user.email, confirmationToken);
+
     res.status(200).json({
-      message: "Order created successfully",
+      message: 'Order created successfully. Please confirm your order via email.',
       newOrder,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const confirmOrder = async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const order = await OrderModel.findOne({ confirmationToken: token });
+    if (!order) {
+      return res.status(404).json({ message: 'Invalid or expired confirmation token' });
+    }
+
+    order.isConfirmed = true;
+    order.confirmationToken = undefined; // Remove the token after confirmation
+    await order.save();
+
+    res.status(200).json({ message: 'Order confirmed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 export const deleteOrder = async (req, res) => {
   const { id } = req.params;
