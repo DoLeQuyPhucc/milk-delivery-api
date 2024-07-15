@@ -131,11 +131,111 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Order'
+ *             type: object
+ *             required:
+ *               - packageID
+ *               - shippingAddress
+ *               - paymentMethod
+ *               - userID
+ *               - isPaid
+ *               - numberOfShipment
+ *             properties:
+ *               packageID:
+ *                 type: string
+ *                 description: The ID of the package being ordered
+ *               shippingAddress:
+ *                 type: object
+ *                 required:
+ *                   - fullName
+ *                   - phone
+ *                   - address
+ *                   - city
+ *                   - country
+ *                 properties:
+ *                   fullName:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   address:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   country:
+ *                     type: string
+ *               paymentMethod:
+ *                 type: string
+ *                 description: The payment method for the order
+ *               userID:
+ *                 type: string
+ *                 description: The ID of the user placing the order
+ *               isPaid:
+ *                 type: boolean
+ *                 description: Payment status of the order
+ *               paidAt:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Date and time when the order was paid
+ *               deliveredAt:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Date and time when the order is expected to be delivered
+ *               numberOfShipment:
+ *                 type: number
+ *                 description: Number of shipments in the order
+ *               status:
+ *                 type: string
+ *                 description: Status of the order
  *     responses:
- *       201:
- *         description: Order created successfully
+ *       200:
+ *         description: Order created successfully. Please confirm your order via email.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Order created successfully. Please confirm your order via email.
+ *                 newOrder:
+ *                   $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       msg:
+ *                         type: string
+ *                       param:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
+
 
 /**
  * @swagger
@@ -295,10 +395,11 @@
 
 /**
  * @swagger
- * /api/orders/confirm:
+ * /api/orders/confirmEmail/confirm:
  *   get:
  *     summary: Confirm an order
  *     description: Confirm an order using a confirmation token
+ *     tags: [Orders]
  *     parameters:
  *       - in: query
  *         name: token
@@ -588,6 +689,8 @@ import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
 import BrandModel from "../models/brandModel.js";
 import ShipperModel from "../models/shipperModel.js";
+import crypto from "crypto";
+import { sendOrderConfirmationEmail } from "../utils/emailUtils.js";
 
 export const getAllOrders = async (req, res) => {
   try {

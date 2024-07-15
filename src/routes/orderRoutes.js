@@ -38,7 +38,7 @@ router.get('/getOrder/total-user-orders', authenticateToken, isManager, getTotal
 router.get('/getOrder/total-price-of-all-orders', authenticateToken, isManager, getTotalPriceOfAllOrders);
 router.get("/:id", authenticateToken, getOrderById);
 router.get("/getByDate/:date", getListOrderByDate);
-router.get("/confirm", confirmOrder);
+router.get("/confirmEmail/confirm", confirmOrder);
 router.delete("/:id", authenticateToken, isUserOrManager, deleteOrder);
 router.patch("/:id/status", authenticateToken, isManager, updateOrderStatus);
 router.get("/getOrders/filtered", authenticateToken, isManager, getFilteredOrders);

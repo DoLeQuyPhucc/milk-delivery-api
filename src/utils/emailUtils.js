@@ -4,23 +4,23 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: process.env.PORT_EMAIL,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_ADDRESS,
-    pass: process.env.EMAIL_PASSWORD,
-  },
+    host: process.env.MAIL_HOST,
+    port: process.env.PORT_EMAIL,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_ADDRESS,
+        pass: process.env.EMAIL_PASSWORD,
+    },
 });
 
 export const sendVerificationEmail = (email, token) => {
-  const url = `https://milk-delivery-api.onrender.com/api/auth/verify-email?token=${token}`;
+    const url = `https://milk-delivery-api.onrender.com/api/auth/verify-email?token=${token}`;
 
-  transporter.sendMail(
-    {
-      to: email,
-      subject: "Verify your email",
-      html: `
+    transporter.sendMail(
+        {
+            to: email,
+            subject: "Verify your email",
+            html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -116,19 +116,19 @@ export const sendVerificationEmail = (email, token) => {
 </body>
 </html>
 `,
-    },
-    (err, info) => {
-      if (err) {
-        console.error("Error sending email:", err);
-      } else {
-        console.log("Email sent:", info.response);
-      }
-    }
-  );
+        },
+        (err, info) => {
+            if (err) {
+                console.error("Error sending email:", err);
+            } else {
+                console.log("Email sent:", info.response);
+            }
+        }
+    );
 };
 
 export const sendOrderConfirmationEmail = (email, token) => {
-    const url = `http://localhost:${process.env.FE_PORT}/api/orders/confirm?token=${token}`;
+    const url = `http://localhost:8000/api/orders/confirm?token=${token}`;
 
     transporter.sendMail(
         {
