@@ -195,6 +195,7 @@ const client = new OAuth2Client(
  *               - firstName
  *               - lastName
  *               - phoneNumber
+ *               - address
  *               - password
  *             properties:
  *               email:
@@ -205,6 +206,8 @@ const client = new OAuth2Client(
  *               lastName:
  *                 type: string
  *               phoneNumber:
+ *                 type: string
+ *               address:
  *                 type: string
  *               password:
  *                 type: string
@@ -319,7 +322,7 @@ const signIn = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if(!user.isVerified) {
+    if (!user.isVerified) {
       return res.status(400).json({ message: "Please verify your email" });
     }
 
@@ -378,7 +381,7 @@ const refreshToken = (req, res) => {
 
 // Sign Up function
 const signUp = async (req, res) => {
-  const { email, password, phoneNumber, firstName, lastName } = req.body;
+  const { email, password, phoneNumber, firstName, lastName, address } = req.body;
 
   try {
     // Check if user already exists by email
@@ -395,7 +398,9 @@ const signUp = async (req, res) => {
       email,
       firstName,
       lastName,
+      userName: email,
       phoneNumber,
+      address,
       password,
       verificationToken,
       role: "USER",
@@ -477,6 +482,7 @@ const googleSignup = async (req, res) => {
       email,
       phoneNumber,
       role,
+      userName: email,
       password: hashedPassword,
       googleId: googleId || null,
       // Set other fields as necessary
@@ -520,6 +526,7 @@ const googleLogin = async (req, res) => {
         firstName: given_name || "Unknown",
         lastName: family_name || "User",
         avatarImage: picture,
+        userName: email,
         phoneNumber: "N/A",
         role: "USER",
         password: "N/A",
