@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendVerificationEmail = (email, token) => {
-  const url = `http://localhost:${process.env.FE_PORT}/api/auth/verify-email?token=${token}`;
+  const url = `https://milk-delivery-api.onrender.com/api/auth/verify-email?token=${token}`;
 
   transporter.sendMail(
     {

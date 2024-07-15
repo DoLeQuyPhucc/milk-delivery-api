@@ -142,7 +142,6 @@ const client = new OAuth2Client(
  *         description: Server error
  */
 
-
 /**
  * @swagger
  * /api/auth/refreshToken:
@@ -262,7 +261,6 @@ const client = new OAuth2Client(
  *         description: Server error
  */
 
-
 /**
  * @swagger
  * /api/auth/me:
@@ -353,7 +351,6 @@ const signIn = async (req, res) => {
   }
 };
 
-
 // Refresh Token function
 const refreshToken = (req, res) => {
   const { refreshToken } = req.body;
@@ -384,7 +381,8 @@ const refreshToken = (req, res) => {
 
 // Sign Up function
 const signUp = async (req, res) => {
-  const { email, password, phoneNumber, firstName, lastName, address } = req.body;
+  const { email, userName, password, phoneNumber, firstName, lastName } =
+    req.body;
 
   try {
     // Check if user already exists by email
@@ -403,7 +401,6 @@ const signUp = async (req, res) => {
       lastName,
       userName,
       phoneNumber,
-      address,
       password,
       verificationToken,
       role: "USER",
@@ -444,7 +441,6 @@ const verifyEmail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 const getMe = async (req, res) => {
   const { id } = req.user;
