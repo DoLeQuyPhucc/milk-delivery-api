@@ -6,7 +6,7 @@ dotenv.config();
 const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
     port: process.env.PORT_EMAIL,
-    secure: false, // Chỉ cần đặt secure thành true nếu bạn sử dụng cổng 465
+    secure: false, 
     auth: {
         user: process.env.EMAIL_ADDRESS,
         pass: process.env.EMAIL_PASSWORD,
