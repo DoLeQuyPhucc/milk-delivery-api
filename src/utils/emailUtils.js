@@ -128,7 +128,7 @@ export const sendVerificationEmail = (email, token) => {
 };
 
 export const sendOrderConfirmationEmail = (email, token) => {
-    const url = `http://localhost:8000/api/orders/confirm?token=${token}`;
+    const url = `https://milk-delivery-api.onrender.com/api/orders/confirm?token=${token}`;
 
     transporter.sendMail(
         {
