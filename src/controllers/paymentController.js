@@ -99,10 +99,12 @@ export const createPaymentOrder = async (req, res) => {
 
 export const createPaymentOrderTracking = async (req, res) => {
   try {
-    const { item } = req.body
+    const { item } = req.body;
 
-    if(item.isPaid === true) {
-      return res.status(404).json({ message: "Order Tracking has been paid !!!" });
+    if (item.isPaid === true) {
+      return res
+        .status(404)
+        .json({ message: "Order Tracking has been paid !!!" });
     }
 
     const ipAddr =
@@ -258,8 +260,11 @@ export const vnpayReturn = async (req, res) => {
                   let trackingItem = {
                     trackingNumber: currentDeliveryCount,
                     isDelivered: false,
-                    deliveredAt: new Date(currentDate),
+                    deliveredAt: formatDate(new Date(currentDate)),
                     isPaid: isPaid ? true : false,
+                    price: isPaid
+                      ? 0
+                      : packages.totalPriceDiscount / numberOfShipment,
                   };
                   circleShipment.tracking.push(trackingItem);
                   currentDeliveryCount++;
@@ -275,8 +280,11 @@ export const vnpayReturn = async (req, res) => {
                   let trackingItem = {
                     trackingNumber: currentDeliveryCount,
                     isDelivered: false,
-                    deliveredAt: new Date(currentDate),
+                    deliveredAt: formatDate(new Date(currentDate)),
                     isPaid: isPaid ? true : false,
+                    price: isPaid
+                      ? 0
+                      : packages.totalPriceDiscount / numberOfShipment,
                   };
                   circleShipment.tracking.push(trackingItem);
                   currentDeliveryCount++;
@@ -324,7 +332,6 @@ export const vnpayReturn = async (req, res) => {
   }
 };
 
-
 export const vnpayReturnOrderTracking = async (req, res) => {
   try {
     let vnp_Params = req.query;
@@ -353,24 +360,22 @@ export const vnpayReturnOrderTracking = async (req, res) => {
 
       if (vnp_Params["vnp_ResponseCode"] === "00") {
         try {
-          const {
-            orderId,
-            item
-          } = orderData;
+          const { orderId, item } = orderData;
 
-        const result = await OrderModel.updateOne(
-          { _id: orderId, "circleShipment.tracking._id": item._id },
-          { $set: { 
-            // "circleShipment.tracking.$.status": "Completed" ,
-            // "circleShipment.tracking.$.isDelivered": true,
-            "circleShipment.tracking.$.isPaid": true,
-          } 
-        }
-        );
+          const result = await OrderModel.updateOne(
+            { _id: orderId, "circleShipment.tracking._id": item._id },
+            {
+              $set: {
+                // "circleShipment.tracking.$.status": "Completed" ,
+                // "circleShipment.tracking.$.isDelivered": true,
+                "circleShipment.tracking.$.isPaid": true,
+              },
+            }
+          );
 
-        if (result.matchedCount === 0) {
-          return res.status(404).send('Order or tracking item not found');
-        }
+          if (result.matchedCount === 0) {
+            return res.status(404).send("Order or tracking item not found");
+          }
 
           // Cập nhật trạng thái thanh toán
           payment.status = "completed";
