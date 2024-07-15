@@ -901,15 +901,17 @@ export const confirmOrder = async (req, res) => {
 
   try {
     const order = await OrderModel.findOne({ confirmationToken: token });
+
     if (!order) {
-      return res.status(404).json({ message: 'Invalid or expired confirmation token' });
+      return res.status(404).json({ message: "Order not found or token is invalid" });
     }
 
+    order.isPaid = true;
     order.isConfirmed = true;
-    order.confirmationToken = undefined; // Remove the token after confirmation
+    order.confirmationToken = undefined; 
     await order.save();
 
-    res.status(200).json({ message: 'Order confirmed successfully' });
+    res.status(200).json({ message: "Order confirmed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
