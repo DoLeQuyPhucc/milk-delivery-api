@@ -785,12 +785,10 @@ export const getListOrderByDate = async (req, res) => {
 
         const { shippingAddress, circleShipment } = order;
 
-        const relevantTrackings_v1 = circleShipment.tracking.filter(
-          (tracking) => tracking.deliveredAt === targetDate
-        );
-
-        const relevantTrackings = relevantTrackings_v1.filter(
-          (tracking) => tracking.status === "Pending"
+        const relevantTrackings = circleShipment.tracking.filter(
+          (tracking) =>
+            tracking.deliveredAt === targetDate &&
+            (tracking.status === "Pending" || tracking.status === "Out for Delivery")
         );
 
         return relevantTrackings.map((tracking) => ({
@@ -850,21 +848,6 @@ export const updateOrderTrackingStatus = async (req, res) => {
   }
 
   try {
-    if (status === "Failed") {
-      const result = await OrderModel.updateOne(
-        { _id: orderId, "circleShipment.tracking._id": itemId },
-        {
-          $set: {
-            "circleShipment.tracking.$.status": status,
-            "circleShipment.tracking.$.isDelivered": false,
-            "circleShipment.tracking.$.reason": reason,
-          },
-        }
-      );
-      res
-        .status(200)
-        .json({ message: "Order status updated successfully", result });
-    }
     if (status === "Completed") {
       const result = await OrderModel.updateOne(
         { _id: orderId, "circleShipment.tracking._id": itemId },
@@ -872,6 +855,20 @@ export const updateOrderTrackingStatus = async (req, res) => {
           $set: {
             "circleShipment.tracking.$.status": status,
             "circleShipment.tracking.$.isDelivered": true,
+            "circleShipment.tracking.$.reason": reason,
+          },
+        }
+      );
+      res
+        .status(200)
+        .json({ message: "Order status updated successfully", result });
+    } else {
+      const result = await OrderModel.updateOne(
+        { _id: orderId, "circleShipment.tracking._id": itemId },
+        {
+          $set: {
+            "circleShipment.tracking.$.status": status,
+            "circleShipment.tracking.$.isDelivered": false,
             "circleShipment.tracking.$.reason": reason,
           },
         }

@@ -74,7 +74,6 @@ const OrderSchema = new mongoose.Schema({
           enum: [
             "Pending",
             "Out for Delivery",
-            "Delivered",
             "Cancelled",
             "Failed",
           ],
