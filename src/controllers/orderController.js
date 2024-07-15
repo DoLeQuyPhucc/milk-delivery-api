@@ -297,7 +297,7 @@
  * @swagger
  * /api/orders/assignShipper:
  *   post:
- *     summary: Assign a shipper to multiple orders
+ *     summary: Assign a shipper to multiple tracking items across multiple orders
  *     tags: [Orders]
  *     requestBody:
  *       required: true
@@ -306,23 +306,25 @@
  *           schema:
  *             type: object
  *             properties:
- *               orderId:
- *                 type: string
- *                 description: The IDs of the orders
+ *               orderIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of order IDs
+ *                 example: ["60c72b1f9b1d4c3a6cddf80b", "60c72b1f9b1d4c3a6cddf80c"]
  *               shipperId:
  *                 type: string
  *                 description: The ID of the shipper
+ *                 example: "60c72b2f9b1d4c3a6cddf80c"
  *               itemIds:
  *                 type: array
  *                 items:
- *                       type: string
- *             example:
- *               orderId: "60c72b1f9b1d4c3a6cddf80b"
- *               shipperId: "60c72b2f9b1d4c3a6cddf80c"
- *               itemIds: ["60c72b1f9b1d4c3a6cddf80b", "60c72b1f9b1d4c3a6cddf80c"]  
+ *                   type: string
+ *                 description: Array of tracking item IDs
+ *                 example: ["60c72b1f9b1d4c3a6cddf80b", "60c72b1f9b1d4c3a6cddf80c"]
  *     responses:
- *       '200':
- *         description: Shipper assigned to orders successfully
+ *       200:
+ *         description: Shipper assigned to tracking items successfully
  *         content:
  *           application/json:
  *             schema:
@@ -330,13 +332,33 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Shipper assigned to orders successfully"
- *                 orders:
+ *                   example: "Shipper assigned to tracking items successfully"
+ *                 updates:
+ *                   type: integer
+ *                   description: Number of updates performed
+ *       400:
+ *         description: Invalid order, shipper, or item IDs, or items already assigned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid order IDs or shipper ID provided."
+ *                 trackingItemsAlreadyAssigned:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Order'
- *       '400':
- *         description: Invalid order IDs or shipper ID
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       trackingNumber:
+ *                         type: string
+ *                       shipper:
+ *                         type: string
+ *       404:
+ *         description: One or more orders not found
  *         content:
  *           application/json:
  *             schema:
@@ -344,22 +366,8 @@
  *               properties:
  *                 message:
  *                   type: string
- *             examples:
- *               invalidId:
- *                 value: { "message": "Invalid order IDs or shipper ID provided." }
- *       '404':
- *         description: One or more orders or shipper not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *             examples:
- *               notFound:
- *                 value: { "message": "One or more orders or shipper not found." }
- *       '500':
+ *                   example: "One or more orders or shipper not found."
+ *       500:
  *         description: Server error
  *         content:
  *           application/json:
@@ -368,10 +376,9 @@
  *               properties:
  *                 message:
  *                   type: string
- *             examples:
- *               serverError:
- *                 value: { "message": "An unexpected error occurred on the server." }
+ *                   example: "An unexpected error occurred on the server."
  */
+
 
 /**
  * @swagger
@@ -1098,40 +1105,60 @@ export const updateCircleShipmentOrder = async (req, res) => {
 };
 
 export const assignShipperToOrder = async (req, res) => {
-  const { orderId, shipperId, itemIds } = req.body;
+  const { orderIds, shipperId, itemIds } = req.body;
 
-  // Validate orderId and shipperId
-  if (
-    !mongoose.Types.ObjectId.isValid(orderId) ||
-    !mongoose.Types.ObjectId.isValid(shipperId)
-  ) {
-    return res.status(400).json({ message: "Invalid order or shipper ID" });
+  // Validate shipperId
+  if (!mongoose.Types.ObjectId.isValid(shipperId)) {
+    return res.status(400).json({ message: "Invalid shipper ID" });
   }
 
-  // Validate each itemId in itemIds array
+  // Validate each orderId and itemId
+  if (!orderIds.every((orderId) => mongoose.Types.ObjectId.isValid(orderId))) {
+    return res.status(400).json({ message: "One or more invalid order IDs" });
+  }
+
   if (!itemIds.every((itemId) => mongoose.Types.ObjectId.isValid(itemId))) {
     return res.status(400).json({ message: "One or more invalid item IDs" });
   }
 
   try {
-    // Retrieve the order to check the shipperId in the tracking items
-    const order = await OrderModel.findOne({ _id: orderId });
-    if (!order) {
-      return res.status(404).send("Order not found");
+    // Retrieve all orders to check the shipperId in the tracking items
+    const orders = await OrderModel.find({ _id: { $in: orderIds } });
+    if (orders.length !== orderIds.length) {
+      return res.status(404).json({ message: "One or more orders not found" });
     }
 
-    // Filter tracking items that are pending and do not have a shipper assigned
-    const trackingItemsToUpdate = order.circleShipment.tracking.filter(
-      (item) =>
-        itemIds.includes(item._id.toString()) &&
-        item.status === "Pending" &&
-        !item.shipper
-    );
+    // Prepare updates for tracking items
+    const updates = [];
+    const trackingItemsAlreadyAssigned = [];
 
-    const trackingItemsAlreadyAssigned = order.circleShipment.tracking.filter(
-      (item) => itemIds.includes(item._id.toString()) && item.shipper
-    );
+    orders.forEach((order) => {
+      const trackingItemsToUpdate = order.circleShipment.tracking.filter(
+        (item) =>
+          itemIds.includes(item._id.toString()) &&
+          item.status === "Pending" &&
+          !item.shipper
+      );
 
+      trackingItemsToUpdate.forEach((item) => {
+        updates.push(
+          OrderModel.updateOne(
+            { _id: order._id, "circleShipment.tracking._id": item._id },
+            { $set: { "circleShipment.tracking.$.shipper": shipperId } }
+          )
+        );
+      });
+
+      const alreadyAssignedItems = order.circleShipment.tracking.filter(
+        (item) => itemIds.includes(item._id.toString()) && item.shipper
+      );
+
+      if (alreadyAssignedItems.length > 0) {
+        trackingItemsAlreadyAssigned.push(...alreadyAssignedItems);
+      }
+    });
+
+    // If all items are already assigned, return an error
     if (trackingItemsAlreadyAssigned.length > 0) {
       return res.status(400).json({
         message: "One or more tracking items already have a shipper assigned",
@@ -1139,26 +1166,12 @@ export const assignShipperToOrder = async (req, res) => {
       });
     }
 
-    if (trackingItemsToUpdate.length !== itemIds.length) {
-      return res.status(400).json({
-        message:
-          "One or more tracking items cannot be updated or do not meet the criteria",
-      });
-    }
-
-    // Proceed to update each tracking item with the new shipperId
-    const updates = trackingItemsToUpdate.map((item) =>
-      OrderModel.updateOne(
-        { _id: orderId, "circleShipment.tracking._id": item._id },
-        { $set: { "circleShipment.tracking.$.shipper": shipperId } }
-      )
-    );
-
+    // Proceed to update all tracking items with the new shipperId
     await Promise.all(updates);
 
     res.status(200).json({
       message: "Shipper assigned to tracking items successfully",
-      trackingItemsToUpdate,
+      updates: updates.length,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
