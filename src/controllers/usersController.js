@@ -97,7 +97,6 @@
  *             required:
  *               - firstName
  *               - lastName
- *               - userName
  *               - email
  *               - password
  *             properties:
@@ -343,8 +342,6 @@
  *                 type: string
  *               lastName:
  *                 type: string
- *               userName:
- *                 type: string
  *               email:
  *                 type: string
  *               phoneNumber:
@@ -523,6 +520,7 @@
  *             required:
  *               - firstName
  *               - lastName
+ *               - userName
  *               - email
  *               - password
  *               - shipperName
@@ -531,7 +529,7 @@
  *                 type: string
  *               lastName:
  *                 type: string
- *               userName:
+ *               userName: 
  *                 type: string
  *               avartaImage:
  *                 type: string
@@ -621,16 +619,12 @@ export const createUser = async (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
-  if (/\s/.test(userName)) {
-    return res.status(400).json({ message: "Username must not contain spaces" });
-  }
-
   const newUser = new UserModel({
     firstName,
     lastName,
+    email,
     userName,
     avartaImage,
-    email,
     phoneNumber,
     role,
     password,
@@ -673,15 +667,18 @@ export const createShipper = async (req, res) => {
     shipperName,
   } = req.body;
 
-  if (!firstName || !lastName || !userName || !email || !password || !shipperName) {
+  if (!firstName || !lastName || userName || !email || !password || !shipperName) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
-    const existingUser = await UserModel.findOne({
-      $or: [{ userName }, { email: req.body.email }]
-    });
+    const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const existingUserByUserName = await UserModel.findOne({ userName });
+    if(existingUserByUserName){
       return res.status(400).json({ message: "User already exists" });
     }
 
@@ -689,9 +686,9 @@ export const createShipper = async (req, res) => {
     const user = new UserModel({
       firstName,
       lastName,
-      userName,
-      avartaImage,
       email,
+      userName ,
+      avartaImage,
       phoneNumber,
       role: "SHIPPER",
       password,

@@ -116,15 +116,24 @@ const client = new OAuth2Client(
  *             properties:
  *               userName:
  *                 type: string
+ *                 format: userName
  *               password:
  *                 type: string
+ *                 format: password
  *     responses:
  *       '200':
  *         description: Successfully signed in
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SignInResponse'
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                   description: The JWT token for authentication.
+ *                 refreshToken:
+ *                   type: string
+ *                   description: The refresh token.
  *       '400':
  *         description: Invalid credentials
  *       '404':
@@ -181,29 +190,30 @@ const client = new OAuth2Client(
  *           schema:
  *             type: object
  *             required:
+ *               - email
  *               - firstName
  *               - lastName
  *               - userName
- *               - email
- *               - password
  *               - phoneNumber
+ *               - address
+ *               - password
  *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
  *               firstName:
  *                 type: string
  *               lastName:
  *                 type: string
  *               userName:
  *                 type: string
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *                 format: password
  *               phoneNumber:
  *                 type: string
  *               address:
  *                 type: string
+ *               password:
+ *                 type: string
+ *                 format: password
  *     responses:
  *       '201':
  *         description: User created successfully
@@ -212,14 +222,43 @@ const client = new OAuth2Client(
  *             schema:
  *               type: object
  *               properties:
- *                 user:
- *                   $ref: '#/components/schemas/User'
- *                 token:
+ *                 message:
  *                   type: string
+ *                   description: Confirmation message for email verification.
  *       '400':
  *         description: User already exists
  *       '500':
  *         description: Error creating user
+ */
+
+/**
+ * @swagger
+ * /api/auth/verify-email:
+ *   get:
+ *     summary: Verify a user's email address
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The email verification token
+ *     responses:
+ *       '200':
+ *         description: Email verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message for successful email verification.
+ *       '400':
+ *         description: Invalid verification token
+ *       '500':
+ *         description: Server error
  */
 
 /**
@@ -270,6 +309,8 @@ const client = new OAuth2Client(
 // Sign In function
 // authController.js
 import UserModel from "../models/userModel.js";
+import crypto from "crypto";
+import { sendVerificationEmail } from "../utils/emailUtils.js";
 
 // Sign In function
 const signIn = async (req, res) => {
@@ -280,6 +321,10 @@ const signIn = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(400).json({ message: "Please verify your email" });
     }
 
     const isMatch = await user.comparePassword(password);
@@ -336,52 +381,64 @@ const refreshToken = (req, res) => {
 
 // Sign Up function
 const signUp = async (req, res) => {
-  const { firstName, lastName, userName, email, password, phoneNumber } =
+  const { email, userName, password, phoneNumber, firstName, lastName } =
     req.body;
 
   try {
-    // Check if user already exists by userName or email
-    const existingUser = await UserModel.findOne({
-      $or: [{ userName }, { email: req.body.email }],
-    });
+    // Check if user already exists by email
+    const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "Email already in use" });
     }
 
-    // Check if user already exist by phoneNumber
-    const existingPhoneNumber = await UserModel.findOne({
-      phoneNumber: req.body.phoneNumber,
-    });
-    if (existingPhoneNumber) {
-      return res.status(400).json({ message: "Phone number already exists" });
-    }
+    // Create verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
     // Create new user
     const user = new UserModel({
+      email,
       firstName,
       lastName,
       userName,
-      email,
       phoneNumber,
-      role: "USER",
       password,
+      verificationToken,
+      role: "USER",
     });
 
     // Save user
     await user.save();
 
-    // Generate token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.SECRET_KEY,
-      { expiresIn: "1d" }
-    );
+    // Send verification email
+    sendVerificationEmail(email, verificationToken);
 
-    // Respond with token and user details
-    res.status(201).json({ user, token });
+    res.status(201).json({ message: "User created, please verify your email" });
   } catch (error) {
     console.error("Error during sign up:", error);
     res.status(500).json({ message: "Error creating user" });
+  }
+};
+
+// Verify Email function
+const verifyEmail = async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const user = await UserModel.findOne({ verificationToken: token });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+
+    await user.save();
+
+    res.json({ message: "Email verified successfully" });
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -424,6 +481,7 @@ const googleSignup = async (req, res) => {
       email,
       phoneNumber,
       role,
+      userName: email,
       password: hashedPassword,
       googleId: googleId || null,
       // Set other fields as necessary
@@ -467,6 +525,7 @@ const googleLogin = async (req, res) => {
         firstName: given_name || "Unknown",
         lastName: family_name || "User",
         avatarImage: picture,
+        userName: email,
         phoneNumber: "N/A",
         role: "USER",
         password: "N/A",
@@ -498,4 +557,5 @@ export default {
   googleSignup,
   signUp,
   getMe,
+  verifyEmail,
 };

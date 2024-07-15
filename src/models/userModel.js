@@ -1,18 +1,19 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-
 const userSchema = new mongoose.Schema(
   {
     firstName: String,
     lastName: String,
-    userName: String,
+    userName: { type: String, unique: true },
     avartaImage: String,
-    email: String,
+    email: { type: String, required: true, unique: true },
     phoneNumber: String,
-    role: String,
-    password: String,
+    role: { type: String, default: "USER" },
+    password: { type: String, required: true },
     address: String,
+    isVerified: { type: Boolean, default: false },
+    verificationToken: String,
     shipper: { type: mongoose.Schema.Types.ObjectId, ref: "shippers" }
   },
   { versionKey: false }
