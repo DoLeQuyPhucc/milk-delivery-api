@@ -131,11 +131,111 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Order'
+ *             type: object
+ *             required:
+ *               - packageID
+ *               - shippingAddress
+ *               - paymentMethod
+ *               - userID
+ *               - isPaid
+ *               - numberOfShipment
+ *             properties:
+ *               packageID:
+ *                 type: string
+ *                 description: The ID of the package being ordered
+ *               shippingAddress:
+ *                 type: object
+ *                 required:
+ *                   - fullName
+ *                   - phone
+ *                   - address
+ *                   - city
+ *                   - country
+ *                 properties:
+ *                   fullName:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   address:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   country:
+ *                     type: string
+ *               paymentMethod:
+ *                 type: string
+ *                 description: The payment method for the order
+ *               userID:
+ *                 type: string
+ *                 description: The ID of the user placing the order
+ *               isPaid:
+ *                 type: boolean
+ *                 description: Payment status of the order
+ *               paidAt:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Date and time when the order was paid
+ *               deliveredAt:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Date and time when the order is expected to be delivered
+ *               numberOfShipment:
+ *                 type: number
+ *                 description: Number of shipments in the order
+ *               status:
+ *                 type: string
+ *                 description: Status of the order
  *     responses:
- *       201:
- *         description: Order created successfully
+ *       200:
+ *         description: Order created successfully. Please confirm your order via email.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Order created successfully. Please confirm your order via email.
+ *                 newOrder:
+ *                   $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       msg:
+ *                         type: string
+ *                       param:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
+
 
 /**
  * @swagger
@@ -291,6 +391,46 @@
  *         description: Order status updated successfully
  *       404:
  *         description: Order not found
+ */
+
+/**
+ * @swagger
+ * /api/orders/confirmEmail/confirm:
+ *   get:
+ *     summary: Confirm an order
+ *     description: Confirm an order using a confirmation token
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         description: Confirmation token
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: Order confirmed successfully
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Order confirmed successfully"
+ *       404:
+ *         description: Invalid or expired confirmation token
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Invalid or expired confirmation token"
+ *       500:
+ *         description: Server error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Server error"
  */
 
 /**
@@ -549,6 +689,8 @@ import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
 import BrandModel from "../models/brandModel.js";
 import ShipperModel from "../models/shipperModel.js";
+import crypto from "crypto";
+import { sendOrderConfirmationEmail } from "../utils/emailUtils.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -634,7 +776,6 @@ export const createOrder = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  console.log("req.body: ", req.body);
   const {
     packageID,
     shippingAddress,
@@ -648,29 +789,29 @@ export const createOrder = async (req, res) => {
   } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(packageID)) {
-    return res.status(404).json({ message: "No package with that id" });
+    return res.status(404).json({ message: 'No package with that id' });
   }
 
   if (!mongoose.Types.ObjectId.isValid(userID)) {
-    return res.status(404).json({ message: "No user with that id" });
+    return res.status(404).json({ message: 'No user with that id' });
   }
 
   try {
     const pkg = await PackageModel.findById(packageID);
     if (!pkg) {
-      return res.status(404).json({ message: "Package not found" });
+      return res.status(404).json({ message: 'Package not found' });
     }
 
     const user = await UserModel.findById(userID);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     const formatDate = (date) => {
       const d = new Date(date);
       const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
 
@@ -722,10 +863,11 @@ export const createOrder = async (req, res) => {
         }
         break;
       default:
-        return res
-          .status(400)
-          .json({ message: "Cannot choose Sunday for Start date" });
+        return res.status(400).json({ message: 'Cannot choose Sunday for Start date' });
     }
+
+    // Generate a confirmation token
+    const confirmationToken = crypto.randomBytes(32).toString('hex');
 
     const order = new OrderModel({
       package: pkg,
@@ -736,18 +878,45 @@ export const createOrder = async (req, res) => {
       paidAt: paidAt ? formatDate(paidAt) : null,
       deliveredAt: formatDate(deliveredAt),
       circleShipment,
-      status: status || "Pending",
+      status: status || 'Pending',
+      confirmationToken,
     });
 
     const newOrder = await order.save();
+
+    // Send confirmation email
+    sendOrderConfirmationEmail(user.email, confirmationToken);
+
     res.status(200).json({
-      message: "Order created successfully",
+      message: 'Order created successfully. Please confirm your order via email.',
       newOrder,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const confirmOrder = async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const order = await OrderModel.findOne({ confirmationToken: token });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found or token is invalid" });
+    }
+
+    order.isPaid = true;
+    order.isConfirmed = true;
+    order.confirmationToken = undefined; 
+    await order.save();
+
+    res.status(200).json({ message: "Order confirmed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 export const deleteOrder = async (req, res) => {
   const { id } = req.params;
