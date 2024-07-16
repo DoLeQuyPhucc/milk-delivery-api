@@ -313,7 +313,7 @@ export const vnpayReturn = async (req, res) => {
           payment.status = "completed";
           await payment.save();
 
-          res.redirect(`exp://192.168.1.8:8081/--/order-result`);
+          res.redirect(`exp://10.87.16.123:8081/--/order-result`);
         } catch (error) {
           console.error("Error creating order: ", error);
           res.status(500).json({ message: "Error creating order" });
