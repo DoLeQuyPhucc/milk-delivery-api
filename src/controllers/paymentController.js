@@ -7,6 +7,7 @@ import OrderModel from "../models/orderModel.js";
 import PackageModel from "../models/packageModel.js";
 import UserModel from "../models/userModel.js";
 import PaymentModel from "../models/paymentModel.js";
+import { sendOrderConfirmationEmail } from "../utils/emailUtils.js";
 
 dotenv.config();
 
@@ -296,8 +297,11 @@ export const vnpayReturn = async (req, res) => {
               break;
           }
 
+          // Generate a confirmation token
+          const confirmationToken = crypto.randomBytes(32).toString("hex");
+
           const order = new OrderModel({
-            package: packages,
+            package: pkg,
             shippingAddress,
             paymentMethod,
             user: user,
@@ -305,9 +309,14 @@ export const vnpayReturn = async (req, res) => {
             paidAt: paidAt ? formatDate(paidAt) : null,
             deliveredAt: formatDate(deliveredAt),
             circleShipment,
+            status: "Pending",
+            confirmationToken,
           });
 
           const newOrder = await order.save();
+
+          // Send confirmation email
+          sendOrderConfirmationEmail(user.email, confirmationToken);
 
           // Cập nhật trạng thái thanh toán
           payment.status = "completed";
