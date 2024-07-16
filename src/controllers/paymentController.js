@@ -301,7 +301,7 @@ export const vnpayReturn = async (req, res) => {
           const confirmationToken = crypto.randomBytes(32).toString("hex");
 
           const order = new OrderModel({
-            package: pkg,
+            package: packages,
             shippingAddress,
             paymentMethod,
             user: user,
